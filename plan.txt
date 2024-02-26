@@ -1,0 +1,42 @@
+### 1. Project Setups
+- **Environment Setup:** Ensure development environment is ready. 
+- **Project Structure:** Create a project directory with subdirectories for source code, tests, and any documentation.
+
+### 2. Basic Game Implementation
+- **Card and Deck Implementation:** Create classes for Cards and the Deck. Ensure the deck can be shuffled and cards can be dealt.
+- **Player and Dealer Logic:** Implement classes for the Player and the Dealer, including the ability to hold hands of cards, make 
+    decisions, and calculate hand values.
+- **Gameplay Mechanics:** Develop the logic for a basic game of Blackjack, allowing a player to hit, stand, double down, or split. 
+    Implement the dealer's logic according to standard rules.
+
+### 3. Basic Strategy Integration
+- **Strategy Table:** Encode the basic strategy into a form your program can use to make decisions (e.g., a lookup table or a set 
+    of if-else statements).
+- **Decision Making:** Adjust the player's decisions during gameplay based on the basic strategy, ensuring that the player follows 
+    the optimal path given their hand and the dealer's upcard.
+
+### 4. Card Counting Implementation
+- **Count System:** Implement the Hi-Lo card counting system, updating the count with each card that is dealt.
+- **Bet Adjustment:** Use the card count to adjust bets before the start of each hand, increasing bets when the count is high.
+- **Strategy Adjustment:** Optionally adjust playing decisions based on the count, if certain adjustments are warranted beyond the 
+    basic strategy.
+
+### 5. Simulation and Testing
+- **Simulator:** Create a simulation environment that allows you to play multiple hands automatically, tracking wins, losses, and 
+    overall profitability.
+- **Testing:** Write tests for the code to ensure accuracy in the game logic, strategy adherence, and card counting system. Automated 
+    tests can help quickly identify any regressions or errors introduced during development.
+
+### 6. Refinement and Advanced Features (Extra Unnecessary Stuff)
+- **Performance Analysis:** Analyze the performance of the strategy over many games. Look for patterns or scenarios where the 
+    strategy may not perform as expected and refine accordingly.
+- **User Interface:** If desired, develop a user interface (UI) for the game, ranging from a simple command-line interface to a more 
+    sophisticated graphical user interface (GUI).
+- **Additional Features:** Consider adding features like support for multiple players, variations of Blackjack rules, or different 
+    card counting systems.
+
+### 7. Documentation and Sharing
+- **Code Documentation:** Document the code with comments and a README file explaining how to run the simulation, the structure of 
+    the project, and any dependencies.
+- **Results Sharing:** Share the results of your simulations, insights from implementing the basic strategy and card counting, and 
+    any interesting findings from your project.
