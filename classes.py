@@ -20,7 +20,16 @@ deck = [Card(value, suit) for value in range(1, 14) for suit in suits_symbol] # 
 for card in deck:
      print(card)
 
-random.shuffle(deck)
-print("============ Shuffled deck ============")
-for card in deck:
-     print(card)
+playerShuffle = True
+
+while(playerShuffle):
+    checkShuffle = str(input("Type 'shuffle' to shuffle the deck \n"))
+
+    if (checkShuffle == "shuffle"):
+        print("============ Shuffled deck ============")
+        random.shuffle(deck)
+        for card in deck:
+            print(card)
+    else:
+        playerShuffle = False
+
