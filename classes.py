@@ -65,6 +65,26 @@ def checkPush(hand1, hand2):
     if (hand1.hand_total() == hand2.hand_total):
         return True
     
+def earlyWinCheck(dealerHand, playerHand):
+    if (checkPush(dealerHand, playerHand)):
+        print("Push. Both players have BlackJack")
+    elif (dealerHand.checkBlackjack()):
+        print("Dealer has BlackJack")
+    elif (playerHand.checkBlackjack()):
+        print("Player has BlackJack")    
+
+def winCheck(dealerHand, playerHand):
+    if (dealerHand.checkBust()):
+        print("Player wins")
+    elif (playerHand.checkBust()):
+        print("Dealer wins")
+    elif (dealerHand.hand_total() > playerHand.hand_total()):
+        print("Player loses")
+    elif (playerHand.hand_total() > dealerHand.hand_total()):
+        print("Player wins")
+    else:
+        print("It is a push. The player draws with the dealer")
+    
 def blackJack(deck):
     while (len(deck) > 8): # I chose 8 arbitrarily. Can change to less or more cards
         dealerHand = Hand("Dealer", [])
@@ -75,17 +95,43 @@ def blackJack(deck):
             dealerHand.add_card(deck.pop())
 
         # Prints initial blackjack state
-        print(f"{dealerHand.type}: " + f"{dealerHand.cards[0]}" + ", " + "Unknown" + "\n" + "Total: -")
+        print(f"{dealerHand.type}: " + f"{dealerHand.cards[0]}" + ", " + "Unknown" + "\n" + "Total: - ")
         print(playerHand)
+        print("\n") 
         
-        if (checkPush(dealerHand, playerHand)):
-            print("Push. Both players have BlackJack")
-        elif (dealerHand.checkBlackjack()):
-            print("Dealer has BlackJack")
-        elif (playerHand.checkBlackjack()):
-            print("Player has BlackJack")
+        earlyWinCheck(dealerHand, playerHand)
 
-        deck = ""
+        playerAction = "hit" 
+        while(not(playerHand.checkBust()) and not(playerAction == "stand")):
+            playerAction = str(input("What do you want to do? ('hit' or 'stand'): "))
+            
+            if (playerAction == "hit"):
+                playerHand.add_card(deck.pop())
+                print(f"{dealerHand.type}: " + f"{dealerHand.cards[0]}" + ", " + "Unknown" + "\n" + "Total: - ")
+                print(playerHand)
+            
+        print(dealerHand)
+        print(playerHand)
+        print("\n")  
+
+        if (not(playerHand.checkBust())):
+            while (not(dealerHand.checkBust()) and (dealerHand.hand_total() <= 17)):
+                #Check for soft 17
+                if (dealerHand.hand_total() == 17):
+                    if (dealerHand.cards[0].value == 1 or dealerHand.cards[1].value == 1):
+                        dealerHand.add_card(deck.pop())
+                else:
+                    dealerHand.add_card(deck.pop())
+            
+            print(dealerHand)
+            print(playerHand)
+            print("\n")           
+
+        winCheck(dealerHand, playerHand)     
+
+        print("-*-========-=-========-*-")
+
+        #deck = ""
         
 
 
@@ -96,6 +142,7 @@ def main():
     suits_symbol = ["♥︎","♦︎","♣︎","♠︎"]
     deck = [Card(value, suit) for value in range(1, 14) for suit in suits_symbol] # interchange suits_symbol and suits
 
+    
     shoeSize = int(input("How many decks of cards do you want in the shoe? \n"))
     deck = deck * shoeSize
     shuffle(deck)
