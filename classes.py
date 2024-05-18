@@ -75,9 +75,7 @@ def blackJack(deck):
             dealerHand.add_card(deck.pop())
 
         # Prints initial blackjack state
-        print(dealerHand.type)
-        print(dealerHand.cards[0])
-        print("Unknown")
+        print(f"{dealerHand.type}: " + f"{dealerHand.cards[0]}" + ", " + "Unknown" + "\n" + "Total: -")
         print(playerHand)
         
         if (checkPush(dealerHand, playerHand)):
