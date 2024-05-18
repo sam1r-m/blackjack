@@ -12,6 +12,44 @@ class Card:
         value_str = value_names.get(self.value, str(self.value))
         return f"{value_str} of {self.suit}"
 
+class Hand:
+    def __init__(self, type, cards):
+        self.type = type
+        self.cards = []
+
+    def add_card(self, card):
+        self.cards.append(card)
+    
+    def get_values(self):
+        return [card.value for card in self.cards]
+    
+    def hand_total(self):
+        total = 0
+        aces = 0
+        for card in self.cards:
+            if card.value >= 10:
+                total += 10
+            elif card.value == 1:
+                aces += 1
+                total += 11
+            else:
+                total += card.value
+        
+        while (total > 21 and aces > 0):
+            total -= 10
+            aces -= 1
+        
+        return total
+
+    def checkBlackjack(self):
+        return (self.hand_total() == 21 and len(self.cards) == 2)
+    
+    def checkBust(self):
+        return (self.hand_total() > 21)
+
+    def __str__(self):
+        return f"{self.type}: " + ", ".join(str(card) for card in self.cards) + "\n" + "Total: " + f"{self.hand_total()}"
+
 def shuffle(deck):
     random.shuffle(deck)
 
@@ -23,29 +61,31 @@ def printHand(hand):
     for card in hand:
         print(card)
 
-def checkBust(hand):
-    if (sum(hand) > 21):
+def checkPush(hand1, hand2):
+    if (hand1.hand_total() == hand2.hand_total):
         return True
-
-def checkBlackjack(hand):
-    if (sum(hand) == 21):
-        return True
-
+    
 def blackJack(deck):
-    while (len(deck) > 8):
-        dealerHand = ["Dealer Hand:"]
-        playerHand = ["Player Hand:"]
+    while (len(deck) > 8): # I chose 8 arbitrarily. Can change to less or more cards
+        dealerHand = Hand("Dealer", [])
+        playerHand = Hand("Player", [])
 
         for i in range (0, 2):
-            playerHand.append(deck.pop())
-            dealerHand.append(deck.pop())
+            playerHand.add_card(deck.pop())
+            dealerHand.add_card(deck.pop())
+
+        # Prints initial blackjack state
+        print(dealerHand.type)
+        print(dealerHand.cards[0])
+        print("Unknown")
+        print(playerHand)
         
-        printHand(dealerHand)
-        print("\n")
-        printHand(playerHand)
-        print("\n")
-        #print("Dealer Hand: Unknown, " + dealerHand[1] + "\n")
-        #print("Player Hand: " + playerHand[0] + " " + playerHand[1] + "\n")
+        if (checkPush(dealerHand, playerHand)):
+            print("Push. Both players have BlackJack")
+        elif (dealerHand.checkBlackjack()):
+            print("Dealer has BlackJack")
+        elif (playerHand.checkBlackjack()):
+            print("Player has BlackJack")
 
         deck = ""
         
