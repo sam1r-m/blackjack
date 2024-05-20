@@ -121,7 +121,8 @@ def blackJack(deck):
                 playerHand.add_card(deck.pop())
                 print(f"{dealerHand.type}: " + f"{dealerHand.cards[0]}" + ", " + "Unknown" + "\n" + "Total: - ")
                 print(playerHand)
-            
+                print("\n")                 
+        
         print(dealerHand)
         print(playerHand)
         print("\n")  
@@ -137,7 +138,11 @@ def blackJack(deck):
             
             print(dealerHand)
             print(playerHand)
-            print("\n")           
+            print("\n")
+
+        elif (playerHand.checkBust()):
+            print("Player has bust")
+            continue          
 
         if checkPush(dealerHand, playerHand):
             bankBalance += bet
