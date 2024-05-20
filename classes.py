@@ -62,31 +62,33 @@ def printHand(hand):
         print(card)
 
 def checkPush(hand1, hand2):
-    if (hand1.hand_total() == hand2.hand_total):
+    if (hand1.hand_total() == hand2.hand_total()):
+        print("It is a push")
         return True
-    
-def earlyWinCheck(dealerHand, playerHand):
-    if (checkPush(dealerHand, playerHand)):
-        print("Push. Both players have BlackJack")
-    elif (dealerHand.checkBlackjack()):
-        print("Dealer has BlackJack")
-    elif (playerHand.checkBlackjack()):
-        print("Player has BlackJack")    
 
 def winCheck(dealerHand, playerHand):
-    if (dealerHand.checkBust()):
+    if ((dealerHand.checkBust()) or (playerHand.hand_total() > dealerHand.hand_total())):
         print("Player wins")
-    elif (playerHand.checkBust()):
-        print("Dealer wins")
-    elif (dealerHand.hand_total() > playerHand.hand_total()):
+        return True
+    elif ((playerHand.checkBust()) or (dealerHand.hand_total() > playerHand.hand_total())):
         print("Player loses")
-    elif (playerHand.hand_total() > dealerHand.hand_total()):
-        print("Player wins")
-    else:
-        print("It is a push. The player draws with the dealer")
+        return False
     
 def blackJack(deck):
+    bankBalance = 100 # $ amount to start
+    initialBet = 5 # $ amount for initial bet
+    minimumBet = 5
+
     while (len(deck) > 8): # I chose 8 arbitrarily. Can change to less or more cards
+        print("Your current bank balance is:", bankBalance)
+
+        if (bankBalance < minimumBet):
+            print("You have insufficient funds to continue playing")
+            return
+        
+        bet = int(input("How much do you want to bet this hand? ")) # Bet amount
+        bankBalance -= bet
+
         dealerHand = Hand("Dealer", [])
         playerHand = Hand("Player", [])
 
@@ -99,8 +101,18 @@ def blackJack(deck):
         print(playerHand)
         print("\n") 
         
-        earlyWinCheck(dealerHand, playerHand)
-
+        # Checking for early Black Jack
+        if (dealerHand.checkBlackjack() and playerHand.checkBlackjack()):
+            bankBalance += (bet * 2)
+            continue
+        elif (dealerHand.checkBlackjack()):
+            print("Dealer has BlackJack")
+            continue
+        elif (playerHand.checkBlackjack()):
+            print("Player has BlackJack")
+            bankBalance += (bet * 2.5)
+            continue
+            
         playerAction = "hit" 
         while(not(playerHand.checkBust()) and not(playerAction == "stand")):
             playerAction = str(input("What do you want to do? ('hit' or 'stand'): "))
@@ -127,11 +139,17 @@ def blackJack(deck):
             print(playerHand)
             print("\n")           
 
-        winCheck(dealerHand, playerHand)     
+        if checkPush(dealerHand, playerHand):
+            bankBalance += bet
+        elif (winCheck(dealerHand, playerHand)):   
+            bankBalance += (bet * 2)
+        else:
+            continue
 
         print("-*-========-=-========-*-")
 
-        #deck = ""
+    print("You have reached the end of the shoe. Your final balance is:")
+    print(bankBalance)
         
 
 
