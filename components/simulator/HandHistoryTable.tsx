@@ -19,16 +19,18 @@ export default function HandHistoryTable({ rounds }: HandHistoryTableProps) {
 
   return (
     <div className="rounded-md border border-border bg-panel p-4">
-      <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-text">
+      <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
         History
       </h2>
       {displayRounds.length === 0 ? (
-        <p className="text-sm text-muted">No games yet</p>
+        <p className="font-[family-name:var(--font-pixel)] text-[10px] text-muted">
+          No games yet
+        </p>
       ) : (
         <div className="max-h-52 overflow-auto">
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-panel">
-              <tr className="border-b border-border text-xs text-muted">
+              <tr className="border-b border-border font-[family-name:var(--font-pixel)] text-[8px] text-muted">
                 <th className="pb-2 pr-3">Spin</th>
                 <th className="pb-2 pr-3">Bet</th>
                 <th className="pb-2 pr-3">Result</th>

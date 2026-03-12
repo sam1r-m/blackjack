@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import StrategyModal from "./StrategyModal";
+import Select from "@/components/common/Select";
 import type { DealerRule, BlackjackPayout } from "@/types/blackjack";
 import type { BettingStrategyType } from "@/types/simulation";
 
@@ -47,20 +48,20 @@ export default function ControlPanel({
     <>
       {/* action buttons */}
       <div className="rounded-md border border-border bg-panel p-4">
-        <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-highlight">
+        <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-highlight">
           Controls
         </h2>
         <div className="space-y-2.5">
           <button
             onClick={onDealHand}
             disabled={isRunning}
-            className="w-full rounded-md border-2 border-highlight bg-highlight py-2.5 font-[family-name:var(--font-display)] text-sm font-bold tracking-wide text-bg shadow-[0_3px_0_#c9981a] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-[0_1px_0_#c9981a] disabled:opacity-50"
+            className="w-full rounded-md border-2 border-highlight bg-highlight py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide text-bg shadow-[0_3px_0_#c9981a] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-[0_1px_0_#c9981a] disabled:opacity-50"
           >
             Play One Hand
           </button>
           <button
             onClick={onToggleAutoplay}
-            className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-display)] text-sm font-bold tracking-wide transition-all active:translate-y-[2px] ${
+            className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide transition-all active:translate-y-[2px] ${
               settings.autoplay
                 ? "border-accent bg-accent text-bg shadow-[0_3px_0_#248a6e] active:shadow-[0_1px_0_#248a6e]"
                 : "border-accent bg-accent/10 text-accent shadow-[0_3px_0_#1a3d32] hover:bg-accent/20 active:shadow-[0_1px_0_#1a3d32]"
@@ -71,8 +72,8 @@ export default function ControlPanel({
 
           {settings.autoplay && (
             <div>
-              <label className="mb-1 block text-xs text-muted">
-                Speed: {settings.speed * 100}ms
+              <label className="mb-1 block font-[family-name:var(--font-pixel)] text-[8px] text-muted">
+                Speed {settings.speed * 100}ms
               </label>
               <input
                 type="range"
@@ -88,7 +89,7 @@ export default function ControlPanel({
           {sessionActive && (
             <button
               onClick={onReset}
-              className="w-full rounded-md border border-loss/30 py-2 text-sm text-loss shadow-[0_2px_0_rgba(232,68,108,0.2)] transition-all hover:border-loss hover:bg-loss/10 active:translate-y-[1px] active:shadow-none"
+              className="w-full rounded-md border border-loss/30 py-2 font-[family-name:var(--font-pixel)] text-[8px] text-loss shadow-[0_2px_0_rgba(232,68,108,0.2)] transition-all hover:border-loss hover:bg-loss/10 active:translate-y-[1px] active:shadow-none"
             >
               Reset
             </button>
@@ -98,36 +99,36 @@ export default function ControlPanel({
 
       {/* settings */}
       <div className="rounded-md border border-border bg-panel p-4">
-        <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-highlight">
+        <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-highlight">
           Settings
         </h2>
         <div className="space-y-3">
           <ControlField label="Decks">
-            <select
+            <Select
               value={settings.deckCount}
-              onChange={(e) => update("deckCount", Number(e.target.value))}
+              options={[
+                { value: 1, label: "1 Deck" },
+                { value: 2, label: "2 Decks" },
+                { value: 4, label: "4 Decks" },
+                { value: 6, label: "6 Decks" },
+                { value: 8, label: "8 Decks" },
+              ]}
+              onChange={(v) => update("deckCount", Number(v))}
               disabled={sessionActive}
-              className="w-full"
-            >
-              <option value={1}>1 Deck</option>
-              <option value={2}>2 Decks</option>
-              <option value={4}>4 Decks</option>
-              <option value={6}>6 Decks</option>
-              <option value={8}>8 Decks</option>
-            </select>
+            />
           </ControlField>
 
           <ControlField label="BJ Payout">
-            <select
+            <Select
               value={settings.blackjackPayout}
-              onChange={(e) => update("blackjackPayout", e.target.value as BlackjackPayout)}
+              options={[
+                { value: "3_to_2", label: "3:2" },
+                { value: "6_to_5", label: "6:5" },
+                { value: "1_to_1", label: "1:1" },
+              ]}
+              onChange={(v) => update("blackjackPayout", v as BlackjackPayout)}
               disabled={sessionActive}
-              className="w-full"
-            >
-              <option value="3_to_2">3:2</option>
-              <option value="6_to_5">6:5</option>
-              <option value="1_to_1">1:1</option>
-            </select>
+            />
           </ControlField>
 
           <ControlField label="Bankroll">
@@ -151,16 +152,16 @@ export default function ControlPanel({
           </ControlField>
 
           <ControlField label="Strategy">
-            <select
+            <Select
               value={settings.bettingStrategy}
-              onChange={(e) => update("bettingStrategy", e.target.value as BettingStrategyType)}
+              options={[
+                { value: "flat", label: "Flat Bet" },
+                { value: "martingale", label: "Martingale" },
+                { value: "reverse_martingale", label: "Reverse Martingale" },
+              ]}
+              onChange={(v) => update("bettingStrategy", v as BettingStrategyType)}
               disabled={sessionActive}
-              className="w-full"
-            >
-              <option value="flat">Flat Bet</option>
-              <option value="martingale">Martingale</option>
-              <option value="reverse_martingale">Reverse Martingale</option>
-            </select>
+            />
           </ControlField>
         </div>
       </div>
@@ -168,7 +169,7 @@ export default function ControlPanel({
       {/* strategy guide */}
       <button
         onClick={() => setShowStrategy(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-md border border-info/30 bg-panel px-4 py-2.5 text-sm text-info shadow-[0_2px_0_rgba(77,163,255,0.15)] transition-all hover:border-info/60 hover:bg-info/5 active:translate-y-[1px] active:shadow-none"
+        className="flex w-full items-center justify-center gap-2 rounded-md border border-info/30 bg-panel px-4 py-2.5 font-[family-name:var(--font-pixel)] text-[8px] text-info shadow-[0_2px_0_rgba(77,163,255,0.15)] transition-all hover:border-info/60 hover:bg-info/5 active:translate-y-[1px] active:shadow-none"
       >
         ⓘ Basic Strategy Guide
       </button>
@@ -181,7 +182,9 @@ export default function ControlPanel({
 function ControlField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-muted">{label}</label>
+      <label className="mb-1 block font-[family-name:var(--font-pixel)] text-[8px] text-muted">
+        {label}
+      </label>
       {children}
     </div>
   );

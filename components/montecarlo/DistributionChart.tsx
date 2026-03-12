@@ -40,7 +40,7 @@ export default function DistributionChart({ sessions }: DistributionChartProps) 
   if (sessions.length === 0) {
     return (
       <div className="rounded-md border border-border bg-panel p-4">
-        <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-text">
+        <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
           Distribution
         </h2>
         <div className="flex h-52 items-center justify-center text-sm text-muted">
@@ -55,7 +55,7 @@ export default function DistributionChart({ sessions }: DistributionChartProps) 
 
   return (
     <div className="rounded-md border border-border bg-panel p-4">
-      <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-text">
+      <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
         Ending Bankroll Distribution
       </h2>
       <div className="h-52">

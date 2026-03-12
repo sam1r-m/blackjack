@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Pixelify_Sans, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Press_Start_2P, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const pixelify = Pixelify_Sans({
+const pixelify = Press_Start_2P({
+  weight: "400",
   subsets: ["latin"],
   variable: "--font-pixel",
-  weight: ["400", "500", "600", "700"],
 });
 
 const spaceGrotesk = Space_Grotesk({

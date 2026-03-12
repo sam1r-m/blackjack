@@ -7,11 +7,11 @@ export default function HistoryPage() {
       <div className="mb-4 flex items-center gap-4 border-b border-border pb-3">
         <Link
           href="/simulator"
-          className="rounded-md border border-border px-3 py-1.5 text-xs text-muted transition-all hover:border-accent hover:text-accent"
+          className="rounded-md border border-border px-3 py-1.5 font-[family-name:var(--font-pixel)] text-[10px] text-muted transition-all hover:border-accent hover:text-accent"
         >
           ◄ Back
         </Link>
-        <h1 className="font-[family-name:var(--font-display)] text-base font-bold text-text md:text-lg">
+        <h1 className="font-[family-name:var(--font-pixel)] text-sm text-text">
           History
         </h1>
       </div>

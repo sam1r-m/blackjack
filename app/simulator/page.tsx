@@ -58,11 +58,11 @@ export default function SimulatorPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="rounded-md border border-border px-3 py-1.5 text-xs text-muted transition-all hover:border-accent hover:text-accent"
+            className="rounded-md border border-border px-3 py-1.5 font-[family-name:var(--font-pixel)] text-[10px] text-muted transition-all hover:border-accent hover:text-accent"
           >
             ◄ Home
           </Link>
-          <h1 className="font-[family-name:var(--font-display)] text-base font-bold text-text md:text-lg">
+          <h1 className="font-[family-name:var(--font-pixel)] text-sm text-text md:text-base">
             Blackjack Martingale
           </h1>
         </div>
@@ -74,7 +74,7 @@ export default function SimulatorPage() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`rounded-t-md px-5 py-2 text-sm font-medium transition-all ${
+            className={`rounded-t-md px-5 py-2 font-[family-name:var(--font-pixel)] text-[10px] transition-all ${
               activeTab === tab.id
                 ? "border-t-2 border-accent bg-panel text-accent"
                 : "text-muted hover:bg-panel/50 hover:text-text"
@@ -145,7 +145,6 @@ function LiveSessionTab() {
       return;
     }
 
-    // brief flash for card deal animation feel
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 150);
 
@@ -243,7 +242,7 @@ function LiveSessionTab() {
 
         {/* stats */}
         <div className="rounded-md border border-border bg-panel p-4">
-          <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-highlight">
+          <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-highlight">
             Stats
           </h2>
           <div className="space-y-1.5 font-[family-name:var(--font-mono)] text-sm">
@@ -290,7 +289,6 @@ function LiveSessionTab() {
       </div>
 
       <div className="space-y-4">
-        {/* game display - shows the actual hand being played */}
         <GameDisplay
           lastOutcome={lastOutcome}
           currentBankroll={currentBankroll}

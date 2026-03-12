@@ -1,5 +1,6 @@
 "use client";
 
+import Select from "@/components/common/Select";
 import type { DealerRule, BlackjackPayout } from "@/types/blackjack";
 import type { BettingStrategyType } from "@/types/simulation";
 
@@ -38,7 +39,7 @@ export default function MonteCarloControls({
 
   return (
     <div className="rounded-md border border-border bg-panel p-4">
-      <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-highlight">
+      <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-highlight">
         Monte Carlo Config
       </h2>
 
@@ -91,44 +92,40 @@ export default function MonteCarloControls({
         </ControlField>
 
         <ControlField label="Strategy">
-          <select
+          <Select
             value={settings.bettingStrategy}
-            onChange={(e) =>
-              update("bettingStrategy", e.target.value as BettingStrategyType)
-            }
-            className="w-full"
-          >
-            <option value="flat">Flat Bet</option>
-            <option value="martingale">Martingale</option>
-            <option value="reverse_martingale">Reverse Martingale</option>
-          </select>
+            options={[
+              { value: "flat", label: "Flat Bet" },
+              { value: "martingale", label: "Martingale" },
+              { value: "reverse_martingale", label: "Reverse Martingale" },
+            ]}
+            onChange={(v) => update("bettingStrategy", v as BettingStrategyType)}
+          />
         </ControlField>
 
         <ControlField label="Decks">
-          <select
+          <Select
             value={settings.deckCount}
-            onChange={(e) => update("deckCount", Number(e.target.value))}
-            className="w-full"
-          >
-            <option value={1}>1 Deck</option>
-            <option value={2}>2 Decks</option>
-            <option value={6}>6 Decks</option>
-            <option value={8}>8 Decks</option>
-          </select>
+            options={[
+              { value: 1, label: "1 Deck" },
+              { value: 2, label: "2 Decks" },
+              { value: 6, label: "6 Decks" },
+              { value: 8, label: "8 Decks" },
+            ]}
+            onChange={(v) => update("deckCount", Number(v))}
+          />
         </ControlField>
 
         <ControlField label="BJ Payout">
-          <select
+          <Select
             value={settings.blackjackPayout}
-            onChange={(e) =>
-              update("blackjackPayout", e.target.value as BlackjackPayout)
-            }
-            className="w-full"
-          >
-            <option value="3_to_2">3:2</option>
-            <option value="6_to_5">6:5</option>
-            <option value="1_to_1">1:1</option>
-          </select>
+            options={[
+              { value: "3_to_2", label: "3:2" },
+              { value: "6_to_5", label: "6:5" },
+              { value: "1_to_1", label: "1:1" },
+            ]}
+            onChange={(v) => update("blackjackPayout", v as BlackjackPayout)}
+          />
         </ControlField>
 
         <ControlField label={`Penetration: ${Math.round(settings.penetration * 100)}%`}>
@@ -146,7 +143,7 @@ export default function MonteCarloControls({
         <button
           onClick={onRun}
           disabled={isRunning}
-          className="w-full rounded-md border-2 border-highlight bg-highlight py-2.5 font-[family-name:var(--font-display)] text-sm font-bold tracking-wide text-bg shadow-[0_3px_0_#c9981a] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-[0_1px_0_#c9981a] disabled:opacity-50"
+          className="w-full rounded-md border-2 border-highlight bg-highlight py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide text-bg shadow-[0_3px_0_#c9981a] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-[0_1px_0_#c9981a] disabled:opacity-50"
         >
           {isRunning ? "Running..." : "[ RUN SIMULATION ]"}
         </button>
@@ -164,7 +161,9 @@ function ControlField({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-muted">{label}</label>
+      <label className="mb-1 block font-[family-name:var(--font-pixel)] text-[8px] text-muted">
+        {label}
+      </label>
       {children}
     </div>
   );

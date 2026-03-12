@@ -39,13 +39,13 @@ const mockRuns = [
 export default function HistoryTable() {
   return (
     <div className="rounded-md border border-border bg-panel p-4">
-      <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-text">
+      <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
         Past Runs
       </h2>
       <div className="overflow-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-border text-xs text-muted">
+            <tr className="border-b border-border font-[family-name:var(--font-pixel)] text-[8px] text-muted">
               <th className="pb-2 pr-4">Date</th>
               <th className="pb-2 pr-4">Mode</th>
               <th className="pb-2 pr-4">Strategy</th>

@@ -22,21 +22,13 @@ function isRedSuit(suit: string): boolean {
   return suit === "hearts" || suit === "diamonds";
 }
 
-function CardView({ card, faceDown = false }: { card: Card; faceDown?: boolean }) {
-  if (faceDown) {
-    return (
-      <div className="flex h-[72px] w-[52px] items-center justify-center rounded-sm border border-accent/30 bg-accent/10 shadow-md">
-        <span className="font-[family-name:var(--font-display)] text-xs text-accent/40">?</span>
-      </div>
-    );
-  }
-
+function CardView({ card }: { card: Card }) {
   const red = isRedSuit(card.suit);
 
   return (
     <div className="flex h-[72px] w-[52px] flex-col items-center justify-between rounded-sm border border-border bg-[#1a2230] p-1.5 shadow-md transition-transform">
       <span
-        className={`self-start font-[family-name:var(--font-display)] text-xs font-bold ${red ? "text-loss" : "text-text"}`}
+        className={`self-start font-[family-name:var(--font-pixel)] text-[10px] ${red ? "text-loss" : "text-text"}`}
       >
         {card.rank}
       </span>
@@ -69,7 +61,7 @@ export default function GameDisplay({
           <span>♦</span>
           <span>♣</span>
         </div>
-        <p className="mt-3 font-[family-name:var(--font-display)] text-xs text-muted/40">
+        <p className="mt-3 font-[family-name:var(--font-pixel)] text-[10px] text-muted/40">
           deal a hand to begin
         </p>
       </div>
@@ -83,21 +75,21 @@ export default function GameDisplay({
 
   return (
     <div
-      className={`relative flex min-h-[200px] flex-col items-center justify-center gap-5 rounded-md border border-border bg-panel-elevated/50 p-5 transition-opacity ${isAnimating ? "opacity-90" : "opacity-100"}`}
+      className={`relative flex min-h-[200px] flex-col items-center justify-center gap-5 rounded-md border border-border bg-panel-elevated/50 p-5 transition-opacity ${isAnimating ? "opacity-80" : "opacity-100"}`}
     >
-      {/* bankroll display */}
+      {/* bankroll */}
       <div className="absolute top-3 right-4 font-[family-name:var(--font-mono)] text-sm text-muted">
         Cash: <span className="text-highlight">${currentBankroll.toFixed(0)}</span>
       </div>
 
-      {/* bet display */}
+      {/* bet */}
       <div className="absolute top-3 left-4 font-[family-name:var(--font-mono)] text-sm text-muted">
         Bet: <span className="text-text">${lastOutcome.bet}</span>
       </div>
 
-      {/* dealer hand */}
+      {/* dealer */}
       <div className="flex flex-col items-center gap-2">
-        <span className="font-[family-name:var(--font-display)] text-[10px] text-muted">
+        <span className="font-[family-name:var(--font-pixel)] text-[9px] text-muted">
           Dealer · {lastOutcome.dealerTotal}
         </span>
         <div className="flex gap-1.5">
@@ -107,25 +99,25 @@ export default function GameDisplay({
         </div>
       </div>
 
-      {/* result badge */}
-      <div className={`font-[family-name:var(--font-display)] text-base font-bold ${result.color}`}>
+      {/* result */}
+      <div className={`font-[family-name:var(--font-pixel)] text-sm ${result.color}`}>
         {result.text}
         {lastOutcome.netWin !== 0 && (
-          <span className="ml-2 font-[family-name:var(--font-mono)] text-sm">
+          <span className="ml-2 font-[family-name:var(--font-mono)] text-xs">
             ({lastOutcome.netWin > 0 ? "+" : ""}
             {lastOutcome.netWin})
           </span>
         )}
       </div>
 
-      {/* player hand */}
+      {/* player */}
       <div className="flex flex-col items-center gap-2">
         <div className="flex gap-1.5">
           {lastOutcome.playerCards.map((card, i) => (
             <CardView key={`p-${i}`} card={card} />
           ))}
         </div>
-        <span className="font-[family-name:var(--font-display)] text-[10px] text-muted">
+        <span className="font-[family-name:var(--font-pixel)] text-[9px] text-muted">
           Player · {lastOutcome.playerTotal}
         </span>
       </div>

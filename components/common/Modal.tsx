@@ -30,7 +30,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       <div className="relative max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg border border-border bg-panel p-6 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
         {title && (
           <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
-            <h2 className="font-[family-name:var(--font-display)] text-base font-bold text-accent">
+            <h2 className="font-[family-name:var(--font-pixel)] text-xs text-accent">
               {title}
             </h2>
             <button

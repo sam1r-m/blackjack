@@ -15,7 +15,7 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 h-3 w-3 border-b-2 border-l-2 border-accent" />
           <div className="absolute bottom-0 right-0 h-3 w-3 border-b-2 border-r-2 border-accent" />
 
-          <h1 className="font-[family-name:var(--font-display)] text-2xl leading-[1.8] font-bold tracking-wide text-text md:text-3xl lg:text-4xl">
+          <h1 className="font-[family-name:var(--font-pixel)] text-xl leading-[2.2] tracking-wide text-text md:text-2xl lg:text-3xl">
             Blackjack
             <br />
             <span className="text-accent">Martingale</span>
@@ -35,7 +35,7 @@ export default function Home() {
         {/* CTA */}
         <Link
           href="/simulator"
-          className="group relative rounded-md border-2 border-highlight bg-highlight px-10 py-3.5 font-[family-name:var(--font-display)] text-sm font-bold tracking-wider text-bg shadow-[0_4px_0_#c9981a] transition-all active:translate-y-[2px] active:shadow-[0_2px_0_#c9981a] hover:shadow-[0_4px_0_#c9981a,0_0_20px_rgba(240,194,74,0.2)]"
+          className="rounded-md border-2 border-highlight bg-highlight px-10 py-3.5 font-[family-name:var(--font-pixel)] text-xs tracking-wider text-bg shadow-[0_4px_0_#c9981a] transition-all hover:shadow-[0_4px_0_#c9981a,0_0_20px_rgba(240,194,74,0.2)] active:translate-y-[2px] active:shadow-[0_2px_0_#c9981a]"
         >
           [ START SIMULATION ]
         </Link>

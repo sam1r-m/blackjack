@@ -19,7 +19,7 @@ export default function MonteCarloSummary({ aggregate }: MonteCarloSummaryProps)
   if (!aggregate) {
     return (
       <div className="rounded-md border border-border bg-panel p-4">
-        <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-text">
+        <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
           Results
         </h2>
         <p className="text-sm text-muted">run a simulation to see results</p>
@@ -29,7 +29,7 @@ export default function MonteCarloSummary({ aggregate }: MonteCarloSummaryProps)
 
   return (
     <div className="rounded-md border border-border bg-panel p-4">
-      <h2 className="mb-3 font-[family-name:var(--font-display)] text-sm font-bold text-text">
+      <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
         Results
       </h2>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">

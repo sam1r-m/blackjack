@@ -2,7 +2,8 @@
 
 import {
   ResponsiveContainer,
-  ComposedChart,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -19,37 +20,51 @@ interface BankrollGraphProps {
 interface DataPoint {
   hand: number;
   bankroll: number;
-  win: boolean;
+  gain?: number;
+  drop?: number;
 }
 
 export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraphProps) {
-  const data: DataPoint[] = [
-    { hand: 0, bankroll: initialBankroll, win: true },
+  // build step data with separate fields for gain/drop coloring
+  const raw = [
+    { hand: 0, bankroll: initialBankroll },
     ...rounds.map((r) => ({
       hand: r.roundNumber,
       bankroll: r.bankrollAfter,
-      win: r.netWin >= 0,
     })),
   ];
 
-  const currentBankroll = data.length > 1 ? data[data.length - 1].bankroll : initialBankroll;
+  // split into two series so gains are green and drops are red
+  const data: DataPoint[] = raw.map((pt, i) => {
+    if (i === 0) return { hand: pt.hand, bankroll: pt.bankroll, gain: pt.bankroll, drop: pt.bankroll };
+    const prev = raw[i - 1];
+    const went_up = pt.bankroll >= prev.bankroll;
+    return {
+      hand: pt.hand,
+      bankroll: pt.bankroll,
+      gain: went_up ? pt.bankroll : undefined,
+      drop: went_up ? undefined : pt.bankroll,
+    };
+  });
+
+  const currentBankroll = raw.length > 1 ? raw[raw.length - 1].bankroll : initialBankroll;
 
   return (
     <div className="rounded-md border border-border bg-panel p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-[family-name:var(--font-display)] text-sm font-bold text-text">
+        <h2 className="font-[family-name:var(--font-pixel)] text-xs text-text">
           Bankroll Chart
         </h2>
-        {data.length > 1 && (
-          <span className="font-[family-name:var(--font-mono)] text-sm font-semibold text-accent">
-            —{currentBankroll.toFixed(0)}
+        {raw.length > 1 && (
+          <span className="font-[family-name:var(--font-mono)] text-sm text-accent">
+            ${currentBankroll.toFixed(0)}
           </span>
         )}
       </div>
       <div className="h-52">
-        {data.length > 1 ? (
+        {raw.length > 1 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data}>
+            <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e2a35" />
               <XAxis
                 dataKey="hand"
@@ -59,6 +74,7 @@ export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraph
               <YAxis
                 stroke="#6b7d8d"
                 tick={{ fontSize: 10, fontFamily: "var(--font-mono)" }}
+                domain={["dataMin - 50", "dataMax + 50"]}
               />
               <Tooltip
                 contentStyle={{
@@ -69,6 +85,8 @@ export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraph
                   color: "#dce4ec",
                   fontFamily: "var(--font-mono)",
                 }}
+                formatter={(value) => [`$${Number(value).toFixed(0)}`, "Bankroll"]}
+                labelFormatter={(label) => `Hand #${label}`}
               />
               <ReferenceLine
                 y={initialBankroll}
@@ -76,45 +94,19 @@ export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraph
                 strokeDasharray="5 5"
                 strokeOpacity={0.35}
               />
-              {/* render step segments with win/loss coloring */}
-              {data.length > 1 &&
-                data.slice(1).map((point, i) => {
-                  const prev = data[i];
-                  const color = point.bankroll >= prev.bankroll ? "#36d6a8" : "#e8446c";
-                  return (
-                    <ReferenceLine
-                      key={`seg-h-${i}`}
-                      segment={[
-                        { x: prev.hand, y: prev.bankroll },
-                        { x: point.hand, y: prev.bankroll },
-                      ]}
-                      stroke={color}
-                      strokeWidth={2}
-                      ifOverflow="visible"
-                    />
-                  );
-                })}
-              {data.length > 1 &&
-                data.slice(1).map((point, i) => {
-                  const prev = data[i];
-                  const color = point.bankroll >= prev.bankroll ? "#36d6a8" : "#e8446c";
-                  return (
-                    <ReferenceLine
-                      key={`seg-v-${i}`}
-                      segment={[
-                        { x: point.hand, y: prev.bankroll },
-                        { x: point.hand, y: point.bankroll },
-                      ]}
-                      stroke={color}
-                      strokeWidth={2}
-                      ifOverflow="visible"
-                    />
-                  );
-                })}
-            </ComposedChart>
+              <Line
+                type="stepAfter"
+                dataKey="bankroll"
+                stroke="#36d6a8"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 3, fill: "#36d6a8", stroke: "#0a0e13", strokeWidth: 2 }}
+                connectNulls
+              />
+            </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex h-full items-center justify-center font-[family-name:var(--font-display)] text-sm text-muted/40">
+          <div className="flex h-full items-center justify-center font-[family-name:var(--font-pixel)] text-[10px] text-muted/40">
             play some hands to see the chart
           </div>
         )}
