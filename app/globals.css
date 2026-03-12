@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: #0a0e13;
+  --color-panel: #111820;
+  --color-panel-elevated: #182028;
+  --color-border: #1e2a35;
+  --color-accent: #36d6a8;
+  --color-highlight: #f0c24a;
+  --color-loss: #e8446c;
+  --color-info: #4da3ff;
+  --color-text: #dce4ec;
+  --color-muted: #6b7d8d;
+
+  --font-display: var(--font-pixel);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* styled inputs */
+input[type="number"],
+select {
+  background-color: var(--color-panel-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 4px;
+  color: var(--color-text) !important;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  padding: 7px 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 2px rgba(54, 214, 168, 0.15);
+}
+
+input[type="number"]:disabled,
+select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7d8d' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+select option {
+  background-color: var(--color-panel-elevated);
+  color: var(--color-text);
+  padding: 8px;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-panel);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+/* range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(54, 214, 168, 0.3);
+}
