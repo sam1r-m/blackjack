@@ -61,6 +61,7 @@ function getBettingStrategy(type: string): BettingStrategy {
 export default function SimulatorPage() {
   const [activeTab, setActiveTab] = useState<Tab>("live");
   const [wideLayout, setWideLayout] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const effectiveWideLayout = wideLayout && !isMobile;
 
@@ -73,6 +74,19 @@ export default function SimulatorPage() {
       {/* top bar */}
       <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-4">
+          {activeTab === "live" && isMobile && (
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-panel text-muted transition-all hover:border-muted hover:bg-border/50 hover:text-text"
+              title="Open menu"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+          )}
           <Link
             href="/"
             className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 font-[family-name:var(--font-pixel)] text-[10px] leading-none text-muted transition-all hover:border-accent hover:text-accent"
@@ -89,7 +103,6 @@ export default function SimulatorPage() {
             onClick={() => setWideLayout(!wideLayout)}
             title={wideLayout ? "Stacked layout" : "Wide layout"}
             className="hidden rounded-md border border-border px-2 py-1.5 text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none lg:flex lg:items-center lg:gap-1.5"
-            style={{ display: isMobile ? "none" : undefined }}
           >
             {wideLayout ? (
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -132,6 +145,8 @@ export default function SimulatorPage() {
           onSettingsChange={setLiveSettings}
           wideLayout={effectiveWideLayout}
           isMobile={isMobile}
+          mobileMenuOpen={mobileMenuOpen}
+          onCloseMobileMenu={() => setMobileMenuOpen(false)}
         />
       )}
       {activeTab === "montecarlo" && (
@@ -150,10 +165,18 @@ interface LiveSessionTabProps {
   onSettingsChange: (s: SimulatorSettings) => void;
   wideLayout: boolean;
   isMobile: boolean;
+  mobileMenuOpen: boolean;
+  onCloseMobileMenu: () => void;
 }
 
-function LiveSessionTab({ settings, onSettingsChange, wideLayout, isMobile }: LiveSessionTabProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+function LiveSessionTab({
+  settings,
+  onSettingsChange,
+  wideLayout,
+  isMobile,
+  mobileMenuOpen,
+  onCloseMobileMenu,
+}: LiveSessionTabProps) {
   const [rounds, setRounds] = useState<SessionRoundRecord[]>([]);
   const [currentBankroll, setCurrentBankroll] = useState(settings.bankroll);
   const [sessionActive, setSessionActive] = useState(false);
@@ -384,24 +407,54 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout, isMobile }: Li
     </div>
   );
 
+  const controlsContent = (
+    <>
+      <ControlPanel
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+        onDealHand={dealOneHand}
+        onToggleAutoplay={handleToggleAutoplay}
+        isRunning={isRunning}
+        sessionActive={sessionActive}
+        onReset={handleReset}
+        canDealHand={!manualPendingDisplay}
+        onResetSettings={handleResetSettings}
+      />
+      {!wideLayout && statsTile}
+    </>
+  );
+
   return (
-    <div
-      className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[260px_minmax(0,1.2fr)_minmax(0,0.65fr)] lg:min-h-[520px]" : "lg:grid-cols-[260px_1fr]"}`}
-    >
-      <div className={`flex flex-col gap-4 ${wideLayout ? "lg:justify-start" : ""}`}>
-        <ControlPanel
-          settings={settings}
-          onSettingsChange={onSettingsChange}
-          onDealHand={dealOneHand}
-          onToggleAutoplay={handleToggleAutoplay}
-          isRunning={isRunning}
-          sessionActive={sessionActive}
-          onReset={handleReset}
-          canDealHand={!manualPendingDisplay}
-          onResetSettings={handleResetSettings}
-        />
-        {!wideLayout && statsTile}
-      </div>
+    <div className="relative">
+      {isMobile && mobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50"
+            onClick={onCloseMobileMenu}
+            aria-hidden
+          />
+          <div className="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] overflow-y-auto border-r border-border bg-bg p-4 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="font-[family-name:var(--font-pixel)] text-xs text-text">Menu</span>
+              <button
+                onClick={onCloseMobileMenu}
+                className="rounded-md border border-border px-2 py-1 font-[family-name:var(--font-pixel)] text-[8px] text-muted hover:border-muted hover:text-text"
+              >
+                ✕ Close
+              </button>
+            </div>
+            <div className="flex flex-col gap-4">{controlsContent}</div>
+          </div>
+        </>
+      )}
+      <div
+        className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[260px_minmax(0,1.2fr)_minmax(0,0.65fr)] lg:min-h-[520px]" : "lg:grid-cols-[260px_1fr]"}`}
+      >
+        {!isMobile && (
+          <div className={`flex flex-col gap-4 ${wideLayout ? "lg:justify-start" : ""}`}>
+            {controlsContent}
+          </div>
+        )}
 
       <div
         className={`flex flex-col gap-4 ${wideLayout ? "min-w-0 overflow-hidden lg:min-h-0 lg:flex-1" : ""}`}
@@ -440,6 +493,7 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout, isMobile }: Li
           {statsTile}
         </div>
       )}
+      </div>
     </div>
   );
 }
