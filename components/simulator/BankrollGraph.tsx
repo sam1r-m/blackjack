@@ -204,7 +204,7 @@ export default function BankrollGraph({ rounds, initialBankroll, fillHeight }: B
     rounds.length > 0 ? rounds[rounds.length - 1].bankrollAfter : initialBankroll;
 
   return (
-    <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "min-h-0 flex-1" : ""}`}>
+    <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "min-h-0 flex-1" : "shrink-0"}`}>
       <div className="mb-3 flex shrink-0 items-center justify-between">
         <h2 className="font-[family-name:var(--font-pixel)] text-xs text-text">
           Bankroll Chart
@@ -215,7 +215,7 @@ export default function BankrollGraph({ rounds, initialBankroll, fillHeight }: B
           </span>
         )}
       </div>
-      <div ref={wrapRef} className={fillHeight ? "min-h-[208px] flex-1" : "h-52"}>
+      <div ref={wrapRef} className={fillHeight ? "min-h-[208px] flex-1" : "h-52 shrink-0"}>
         <canvas ref={canvasRef} className="block" />
       </div>
     </div>
