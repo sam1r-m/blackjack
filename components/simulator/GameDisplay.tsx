@@ -87,13 +87,13 @@ export default function GameDisplay({
 
   const feltBox = (
     <div
-      className="relative min-h-[360px] overflow-hidden rounded-lg"
+      className="relative min-h-[360px] overflow-hidden rounded-xl border-[3px] border-[#1e2a35]"
       style={{
         backgroundImage: "url(/Background_Green_Felt.png)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         boxShadow:
-          "inset 0 0 0 1px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.3), 0 0 0 3px #1e2a35, 0 4px 12px rgba(0,0,0,0.5)",
+          "inset 0 0 56px 21px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.5)",
       }}
     >
       <div className="relative flex min-h-[360px] flex-col items-center justify-center gap-5 p-6">
