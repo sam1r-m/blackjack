@@ -49,6 +49,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards,
       isBust: false,
+      doubled: false,
     };
   }
 
@@ -66,6 +67,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards,
       isBust: false,
+      doubled: false,
     };
   }
 
@@ -82,6 +84,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards,
       isBust: false,
+      doubled: false,
     };
   }
 
@@ -89,6 +92,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
   let currentBet = bet;
   let isFirstAction = true;
   let surrendered = false;
+  let doubled = false;
 
   while (true) {
     const playerTotals = getHandTotals(playerCards);
@@ -127,6 +131,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
 
     if (action === "double" && canDouble) {
       currentBet *= 2;
+      doubled = true;
       playerCards.push(shoe.draw());
       break;
     }
@@ -153,6 +158,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards,
       isBust: false,
+      doubled: false,
     };
   }
 
@@ -171,6 +177,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards,
       isBust: true,
+      doubled,
     };
   }
 
@@ -191,6 +198,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards: finalDealerCards,
       isBust: false,
+      doubled,
     };
   }
 
@@ -207,6 +215,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards: finalDealerCards,
       isBust: false,
+      doubled,
     };
   }
 
@@ -222,6 +231,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
       playerCards,
       dealerCards: finalDealerCards,
       isBust: false,
+      doubled,
     };
   }
 
@@ -236,5 +246,6 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
     playerCards,
     dealerCards: finalDealerCards,
     isBust: false,
+    doubled,
   };
 }

@@ -43,6 +43,7 @@ export interface SessionRoundRecord {
   bankrollBefore: number;
   bankrollAfter: number;
   netWin: number;
+  doubled: boolean;
 }
 
 // session summary after running a full session

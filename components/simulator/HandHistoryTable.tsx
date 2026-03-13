@@ -44,7 +44,7 @@ export default function HandHistoryTable({ rounds }: HandHistoryTableProps) {
                   <td className="py-1.5 pr-3 text-muted">{row.roundNumber}</td>
                   <td className="py-1.5 pr-3">{row.bet}</td>
                   <td className={`py-1.5 pr-3 ${resultColors[row.result] ?? "text-text"}`}>
-                    {row.result}
+                    {row.result}{row.doubled ? " (2x)" : ""}
                   </td>
                   <td
                     className={`py-1.5 pr-3 ${

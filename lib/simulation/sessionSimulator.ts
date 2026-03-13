@@ -99,6 +99,7 @@ export function runSession(config: SessionSimulatorConfig): SessionSummary {
       bankrollBefore,
       bankrollAfter: bankroll,
       netWin: outcome.netWin,
+      doubled: outcome.doubled,
     });
 
     // ruined

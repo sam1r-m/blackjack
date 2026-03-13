@@ -185,6 +185,7 @@ function LiveSessionTab({ settings, onSettingsChange }: LiveSessionTabProps) {
       bankrollBefore: currentBankroll,
       bankrollAfter: newBankroll,
       netWin: outcome.netWin,
+      doubled: outcome.doubled,
     };
 
     setRounds((prev) => [...prev, record]);

@@ -42,6 +42,7 @@ export interface RoundOutcome {
   playerCards: Card[];
   dealerCards: Card[];
   isBust: boolean;
+  doubled: boolean;
 }
 
 // rule config

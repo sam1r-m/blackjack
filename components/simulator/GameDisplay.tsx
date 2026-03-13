@@ -102,6 +102,7 @@ export default function GameDisplay({
       {/* result */}
       <div className={`font-[family-name:var(--font-pixel)] text-sm ${result.color}`}>
         {result.text}
+        {lastOutcome.doubled && " (2x)"}
         {lastOutcome.netWin !== 0 && (
           <span className="ml-2 font-[family-name:var(--font-mono)] text-xs">
             ({lastOutcome.netWin > 0 ? "+" : ""}

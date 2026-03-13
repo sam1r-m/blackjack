@@ -141,8 +141,8 @@ export default function ControlPanel({
               title={settings.allowSurrender ? "Surrender allowed" : "Surrender disabled"}
               className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
                 settings.allowSurrender
-                  ? "border-[#9b6dff]/40 text-[#9b6dff]"
-                  : "border-border text-muted"
+                  ? "border-[#9b6dff]/40 text-[#9b6dff] hover:border-[#9b6dff] hover:bg-[#9b6dff]/10"
+                  : "border-border text-muted hover:border-muted hover:bg-border/50"
               }`}
             >
               SUR
