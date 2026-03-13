@@ -5,6 +5,7 @@ import type { SessionRoundRecord } from "@/types/simulation";
 interface HandHistoryTableProps {
   rounds: SessionRoundRecord[];
   fillHeight?: boolean;
+  compact?: boolean;
 }
 
 const resultColors: Record<string, string> = {
@@ -15,12 +16,12 @@ const resultColors: Record<string, string> = {
   surrender: "text-[#9b6dff]",
 };
 
-export default function HandHistoryTable({ rounds, fillHeight }: HandHistoryTableProps) {
+export default function HandHistoryTable({ rounds, fillHeight, compact }: HandHistoryTableProps) {
   const displayRounds = [...rounds].reverse().slice(0, 50);
 
   return (
-    <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "h-full" : ""}`}>
-      <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
+    <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "h-full min-h-0" : ""}`}>
+      <h2 className="mb-3 shrink-0 font-[family-name:var(--font-pixel)] text-xs text-text">
         History
       </h2>
       {displayRounds.length === 0 ? (
@@ -28,7 +29,7 @@ export default function HandHistoryTable({ rounds, fillHeight }: HandHistoryTabl
           No games yet
         </p>
       ) : (
-        <div className={`overflow-auto ${fillHeight ? "flex-1" : "max-h-52"}`}>
+        <div className={`overflow-auto min-h-0 ${fillHeight ? "flex-1" : compact ? "max-h-32" : "max-h-52"}`}>
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-panel">
               <tr className="border-b border-border font-[family-name:var(--font-pixel)] text-[8px] text-muted">

@@ -268,9 +268,59 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
     onSettingsChange({ ...DEFAULT_SETTINGS });
   };
 
+  const statsTile = (
+    <div className="rounded-md border border-border bg-panel p-4">
+      <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-highlight">
+        Stats
+      </h2>
+      <div className="space-y-1.5 font-[family-name:var(--font-mono)] text-sm">
+        <div className="flex justify-between">
+          <span className="text-muted">Current Bet:</span>
+          <span className="text-highlight">
+            ${rounds.length > 0 ? rounds[rounds.length - 1].bet.toFixed(2) : settings.baseBet.toFixed(2)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Games:</span>
+          <span>{rounds.length}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Wins:</span>
+          <span className="text-accent">
+            {rounds.filter((r) => r.result === "win" || r.result === "blackjack").length}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Losses:</span>
+          <span className="text-loss">
+            {rounds.filter((r) => r.result === "loss" || r.result === "surrender").length}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted">Pushes:</span>
+          <span>{rounds.filter((r) => r.result === "push").length}</span>
+        </div>
+        <div className="mt-2 border-t border-border pt-2">
+          <div className="flex justify-between">
+            <span className="text-muted">Profit:</span>
+            <span className={currentBankroll - settings.bankroll >= 0 ? "text-accent" : "text-loss"}>
+              {(currentBankroll - settings.bankroll).toFixed(2)}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted">House Edge:</span>
+            <span className="text-loss">0.50%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[260px_minmax(0,1fr)_240px]" : "lg:grid-cols-[260px_1fr]"}`}>
-      <div className="space-y-4">
+    <div
+      className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[260px_minmax(0,1.2fr)_minmax(0,0.65fr)] lg:min-h-[520px]" : "lg:grid-cols-[260px_1fr]"}`}
+    >
+      <div className={`flex flex-col gap-4 ${wideLayout ? "lg:justify-start" : ""}`}>
         <ControlPanel
           settings={settings}
           onSettingsChange={onSettingsChange}
@@ -281,68 +331,36 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
           onReset={handleReset}
           onResetSettings={handleResetSettings}
         />
-
-        {/* stats */}
-        <div className="rounded-md border border-border bg-panel p-4">
-          <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-highlight">
-            Stats
-          </h2>
-          <div className="space-y-1.5 font-[family-name:var(--font-mono)] text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted">Current Bet:</span>
-              <span className="text-highlight">
-                ${rounds.length > 0 ? rounds[rounds.length - 1].bet.toFixed(2) : settings.baseBet.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Games:</span>
-              <span>{rounds.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Wins:</span>
-              <span className="text-accent">
-                {rounds.filter((r) => r.result === "win" || r.result === "blackjack").length}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Losses:</span>
-              <span className="text-loss">
-                {rounds.filter((r) => r.result === "loss" || r.result === "surrender").length}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Pushes:</span>
-              <span>{rounds.filter((r) => r.result === "push").length}</span>
-            </div>
-            <div className="mt-2 border-t border-border pt-2">
-              <div className="flex justify-between">
-                <span className="text-muted">Profit:</span>
-                <span className={currentBankroll - settings.bankroll >= 0 ? "text-accent" : "text-loss"}>
-                  {(currentBankroll - settings.bankroll).toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">House Edge:</span>
-                <span className="text-loss">0.50%</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        {!wideLayout && statsTile}
       </div>
 
-      <div className={`space-y-4 ${wideLayout ? "min-w-0 overflow-hidden" : ""}`}>
-        <GameDisplay
-          lastOutcome={lastOutcome}
-          currentBankroll={currentBankroll}
-          isAnimating={isAnimating}
-        />
-        <BankrollGraph rounds={rounds} initialBankroll={settings.bankroll} />
+      <div
+        className={`flex flex-col gap-4 ${wideLayout ? "min-w-0 overflow-hidden lg:min-h-0 lg:flex-1" : ""}`}
+      >
+        <div className={wideLayout ? "shrink-0" : ""}>
+          <GameDisplay
+            lastOutcome={lastOutcome}
+            currentBankroll={currentBankroll}
+            isAnimating={isAnimating}
+            handNumber={rounds.length}
+          />
+        </div>
+        <div className={wideLayout ? "flex min-h-0 flex-1 flex-col" : ""}>
+          <BankrollGraph
+            rounds={rounds}
+            initialBankroll={settings.bankroll}
+            fillHeight={wideLayout}
+          />
+        </div>
         {!wideLayout && <HandHistoryTable rounds={rounds} />}
       </div>
 
       {wideLayout && (
-        <div className="min-h-0">
-          <HandHistoryTable rounds={rounds} fillHeight />
+        <div className="flex min-h-0 flex-col gap-4">
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <HandHistoryTable rounds={rounds} fillHeight />
+          </div>
+          {statsTile}
         </div>
       )}
     </div>

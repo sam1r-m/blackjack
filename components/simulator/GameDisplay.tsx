@@ -6,6 +6,7 @@ interface GameDisplayProps {
   lastOutcome: RoundOutcome | null;
   currentBankroll: number;
   isAnimating: boolean;
+  handNumber: number;
 }
 
 function cardToSprite(card: Card): string {
@@ -61,10 +62,11 @@ export default function GameDisplay({
   lastOutcome,
   currentBankroll,
   isAnimating,
+  handNumber,
 }: GameDisplayProps) {
   const feltBox = (
     <div
-      className="relative overflow-hidden rounded-lg"
+      className="relative min-h-[360px] overflow-hidden rounded-lg"
       style={{
         backgroundImage: "url(/Background_Green_Felt.png)",
         backgroundSize: "cover",
@@ -73,29 +75,41 @@ export default function GameDisplay({
           "inset 0 0 0 1px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.3), 0 0 0 3px #1e2a35, 0 4px 12px rgba(0,0,0,0.5)",
       }}
     >
-      <div className="relative flex min-h-[200px] flex-col items-center justify-center gap-5 p-6">
+      <div className="relative flex min-h-[360px] flex-col items-center justify-center gap-5 p-6">
         {!lastOutcome ? (
           <>
-            <div className="flex gap-3 text-3xl text-muted/20">
+            <div
+              className="flex gap-3 text-3xl text-bg"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+            >
               <span>♠</span>
               <span>♥</span>
               <span>♦</span>
               <span>♣</span>
             </div>
-            <p className="font-[family-name:var(--font-pixel)] text-[10px] text-muted/40">
+            <p className="font-[family-name:var(--font-pixel)] text-[10px] text-bg">
               deal a hand to begin
             </p>
+            <div className="absolute bottom-3 right-4 font-[family-name:var(--font-mono)] text-sm">
+              <span className="font-bold text-bg">Hand:</span>{" "}
+              <span className="font-black text-text">{handNumber}</span>
+            </div>
           </>
         ) : (
           <>
-            <div className="absolute top-3 right-4 font-[family-name:var(--font-mono)] text-sm text-muted">
-              Cash: <span className="text-highlight">${currentBankroll.toFixed(0)}</span>
+            <div className="absolute top-3 right-4 font-[family-name:var(--font-mono)] text-sm">
+              <span className="font-bold text-bg">Cash:</span> <span className="text-highlight">${currentBankroll.toFixed(0)}</span>
             </div>
-            <div className="absolute top-3 left-4 font-[family-name:var(--font-mono)] text-sm text-muted">
-              Bet: <span className="text-text">${lastOutcome.bet}</span>
+            <div className="absolute top-3 left-4 font-[family-name:var(--font-mono)] text-sm">
+              <span className="font-bold text-bg">Bet:</span>{" "}
+              <span className="text-text">${lastOutcome.bet}</span>
+            </div>
+            <div className="absolute bottom-3 right-4 font-[family-name:var(--font-mono)] text-sm">
+              <span className="font-bold text-bg">Hand:</span>{" "}
+              <span className="font-black text-text">{handNumber}</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <span className="font-[family-name:var(--font-pixel)] text-[9px] text-muted">
+              <span className="font-[family-name:var(--font-pixel)] text-[9px] text-bg">
                 Dealer · {lastOutcome.dealerTotal}
               </span>
               <div className="flex gap-1.5">
@@ -120,7 +134,7 @@ export default function GameDisplay({
                   <CardView key={`p-${i}`} card={card} />
                 ))}
               </div>
-              <span className="font-[family-name:var(--font-pixel)] text-[9px] text-muted">
+              <span className="font-[family-name:var(--font-pixel)] text-[9px] text-bg">
                 Player · {lastOutcome.playerTotal}
               </span>
             </div>

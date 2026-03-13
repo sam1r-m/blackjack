@@ -6,6 +6,7 @@ import type { SessionRoundRecord } from "@/types/simulation";
 interface BankrollGraphProps {
   rounds: SessionRoundRecord[];
   initialBankroll: number;
+  fillHeight?: boolean;
 }
 
 const PAD = { top: 16, right: 52, bottom: 28, left: 8 };
@@ -41,7 +42,7 @@ function barColor(result: string): { fill: string; edge: string } {
   }
 }
 
-export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraphProps) {
+export default function BankrollGraph({ rounds, initialBankroll, fillHeight }: BankrollGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +53,7 @@ export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraph
 
     const dpr = window.devicePixelRatio || 1;
     const w = wrap.clientWidth;
-    const h = 208;
+    const h = Math.max(208, wrap.clientHeight || 208);
 
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
@@ -203,8 +204,8 @@ export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraph
     rounds.length > 0 ? rounds[rounds.length - 1].bankrollAfter : initialBankroll;
 
   return (
-    <div className="rounded-md border border-border bg-panel p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "min-h-0 flex-1" : ""}`}>
+      <div className="mb-3 flex shrink-0 items-center justify-between">
         <h2 className="font-[family-name:var(--font-pixel)] text-xs text-text">
           Bankroll Chart
         </h2>
@@ -214,7 +215,7 @@ export default function BankrollGraph({ rounds, initialBankroll }: BankrollGraph
           </span>
         )}
       </div>
-      <div ref={wrapRef} className="h-52">
+      <div ref={wrapRef} className={fillHeight ? "min-h-[208px] flex-1" : "h-52"}>
         <canvas ref={canvasRef} className="block" />
       </div>
     </div>

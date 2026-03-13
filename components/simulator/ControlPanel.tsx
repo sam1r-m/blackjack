@@ -3,6 +3,7 @@
 import { useState } from "react";
 import StrategyModal from "./StrategyModal";
 import Select from "@/components/common/Select";
+import Tooltip from "@/components/common/Tooltip";
 import NumberInput from "@/components/common/NumberInput";
 import type { DealerRule, BlackjackPayout } from "@/types/blackjack";
 import type { BettingStrategyType } from "@/types/simulation";
@@ -131,44 +132,47 @@ export default function ControlPanel({
       </div>
 
       {/* settings */}
-      <div className="rounded-md border border-border bg-panel p-4">
+      <div className="min-h-[350px] rounded-md border border-border bg-panel p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-[family-name:var(--font-pixel)] text-xs text-highlight">
             Settings
           </h2>
           <div className="flex gap-1.5">
-            <button
-              onClick={() => update("allowDouble", !settings.allowDouble)}
-              disabled={sessionActive}
-              title={settings.allowDouble ? "Doubling allowed" : "Doubling disabled"}
-              className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
-                settings.allowDouble
-                  ? "border-highlight/40 text-highlight hover:border-highlight hover:bg-highlight/10"
-                  : "border-border text-muted hover:border-muted hover:bg-border/50"
-              }`}
-            >
-              2x
-            </button>
-            <button
-              onClick={() => update("allowSurrender", !settings.allowSurrender)}
-              disabled={sessionActive}
-              title={settings.allowSurrender ? "Surrender allowed" : "Surrender disabled"}
-              className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
-                settings.allowSurrender
-                  ? "border-[#9b6dff]/40 text-[#9b6dff] hover:border-[#9b6dff] hover:bg-[#9b6dff]/10"
-                  : "border-border text-muted hover:border-muted hover:bg-border/50"
-              }`}
-            >
-              SUR
-            </button>
-            <button
-              onClick={onResetSettings}
-              disabled={sessionActive}
-              title="Reset to defaults"
-              className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
-            >
-              <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
-            </button>
+            <Tooltip content={settings.allowDouble ? "Doubling allowed" : "Doubling disabled"}>
+              <button
+                onClick={() => update("allowDouble", !settings.allowDouble)}
+                disabled={sessionActive}
+                className={`h-full min-h-[26px] rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
+                  settings.allowDouble
+                    ? "border-highlight/40 text-highlight hover:border-highlight hover:bg-highlight/10"
+                    : "border-border text-muted hover:border-muted hover:bg-border/50"
+                }`}
+              >
+                2x
+              </button>
+            </Tooltip>
+            <Tooltip content={settings.allowSurrender ? "Surrender allowed" : "Surrender disabled"}>
+              <button
+                onClick={() => update("allowSurrender", !settings.allowSurrender)}
+                disabled={sessionActive}
+                className={`h-full min-h-[26px] rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
+                  settings.allowSurrender
+                    ? "border-[#9b6dff]/40 text-[#9b6dff] hover:border-[#9b6dff] hover:bg-[#9b6dff]/10"
+                    : "border-border text-muted hover:border-muted hover:bg-border/50"
+                }`}
+              >
+                SUR
+              </button>
+            </Tooltip>
+            <Tooltip content="Reset">
+              <button
+                onClick={onResetSettings}
+                disabled={sessionActive}
+                className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
+              >
+                <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
+              </button>
+            </Tooltip>
           </div>
         </div>
         <div className="space-y-3">
