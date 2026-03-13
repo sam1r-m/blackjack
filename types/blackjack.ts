@@ -89,5 +89,6 @@ export interface RoundConfig {
     dealerRule: DealerRule;
     blackjackPayout: BlackjackPayout;
     allowSurrender?: boolean;
+    allowDouble?: boolean;
   };
 }

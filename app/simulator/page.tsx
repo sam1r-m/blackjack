@@ -52,6 +52,7 @@ function getBettingStrategy(type: string): BettingStrategy {
 
 export default function SimulatorPage() {
   const [activeTab, setActiveTab] = useState<Tab>("live");
+  const [wideLayout, setWideLayout] = useState(false);
 
   // lifted state so settings persist across tab switches
   const [liveSettings, setLiveSettings] = useState<SimulatorSettings>(DEFAULT_SETTINGS);
@@ -73,6 +74,28 @@ export default function SimulatorPage() {
             Blackjack Simulator
           </h1>
         </div>
+        {activeTab === "live" && (
+          <button
+            onClick={() => setWideLayout(!wideLayout)}
+            title={wideLayout ? "Stacked layout" : "Wide layout"}
+            className="hidden rounded-md border border-border px-2 py-1.5 text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none lg:flex lg:items-center lg:gap-1.5"
+          >
+            {wideLayout ? (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="1" y="1" width="14" height="6" rx="1" />
+                <rect x="1" y="9" width="14" height="6" rx="1" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="1" y="1" width="6" height="14" rx="1" />
+                <rect x="9" y="1" width="6" height="14" rx="1" />
+              </svg>
+            )}
+            <span className="font-[family-name:var(--font-pixel)] text-[7px]">
+              {wideLayout ? "Stack" : "Wide"}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* tabs */}
@@ -96,6 +119,7 @@ export default function SimulatorPage() {
         <LiveSessionTab
           settings={liveSettings}
           onSettingsChange={setLiveSettings}
+          wideLayout={wideLayout}
         />
       )}
       {activeTab === "montecarlo" && (
@@ -112,9 +136,10 @@ export default function SimulatorPage() {
 interface LiveSessionTabProps {
   settings: SimulatorSettings;
   onSettingsChange: (s: SimulatorSettings) => void;
+  wideLayout: boolean;
 }
 
-function LiveSessionTab({ settings, onSettingsChange }: LiveSessionTabProps) {
+function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionTabProps) {
   const [rounds, setRounds] = useState<SessionRoundRecord[]>([]);
   const [currentBankroll, setCurrentBankroll] = useState(settings.bankroll);
   const [sessionActive, setSessionActive] = useState(false);
@@ -163,6 +188,7 @@ function LiveSessionTab({ settings, onSettingsChange }: LiveSessionTabProps) {
           dealerRule: settings.dealerRule,
           blackjackPayout: settings.blackjackPayout,
           allowSurrender: settings.allowSurrender,
+          allowDouble: settings.allowDouble,
         },
       },
       {
@@ -243,7 +269,7 @@ function LiveSessionTab({ settings, onSettingsChange }: LiveSessionTabProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
+    <div className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[260px_minmax(0,1fr)_240px]" : "lg:grid-cols-[260px_1fr]"}`}>
       <div className="space-y-4">
         <ControlPanel
           settings={settings}
@@ -304,15 +330,21 @@ function LiveSessionTab({ settings, onSettingsChange }: LiveSessionTabProps) {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className={`space-y-4 ${wideLayout ? "min-w-0 overflow-hidden" : ""}`}>
         <GameDisplay
           lastOutcome={lastOutcome}
           currentBankroll={currentBankroll}
           isAnimating={isAnimating}
         />
         <BankrollGraph rounds={rounds} initialBankroll={settings.bankroll} />
-        <HandHistoryTable rounds={rounds} />
+        {!wideLayout && <HandHistoryTable rounds={rounds} />}
       </div>
+
+      {wideLayout && (
+        <div className="min-h-0">
+          <HandHistoryTable rounds={rounds} fillHeight />
+        </div>
+      )}
     </div>
   );
 }

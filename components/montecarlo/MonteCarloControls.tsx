@@ -62,7 +62,7 @@ export default function MonteCarloControls({
         <button
           onClick={onResetSettings}
           title="Reset to defaults"
-            className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:bg-border hover:text-text active:translate-y-[2px] active:shadow-none"
+            className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none"
         >
           <span className="-translate-y-[2px] translate-x-px inline-block">⟳</span>
         </button>

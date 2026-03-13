@@ -19,6 +19,7 @@ export interface SimulatorSettings {
   tableMax: number;
   penetration: number;
   allowSurrender: boolean;
+  allowDouble: boolean;
 }
 
 export const DEFAULT_SETTINGS: SimulatorSettings = {
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: SimulatorSettings = {
   tableMax: 500,
   penetration: 0.75,
   allowSurrender: true,
+  allowDouble: true,
 };
 
 const SPEED_LABELS: Record<number, string> = {
@@ -136,6 +138,18 @@ export default function ControlPanel({
           </h2>
           <div className="flex gap-1.5">
             <button
+              onClick={() => update("allowDouble", !settings.allowDouble)}
+              disabled={sessionActive}
+              title={settings.allowDouble ? "Doubling allowed" : "Doubling disabled"}
+              className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
+                settings.allowDouble
+                  ? "border-highlight/40 text-highlight hover:border-highlight hover:bg-highlight/10"
+                  : "border-border text-muted hover:border-muted hover:bg-border/50"
+              }`}
+            >
+              2x
+            </button>
+            <button
               onClick={() => update("allowSurrender", !settings.allowSurrender)}
               disabled={sessionActive}
               title={settings.allowSurrender ? "Surrender allowed" : "Surrender disabled"}
@@ -151,7 +165,7 @@ export default function ControlPanel({
               onClick={onResetSettings}
               disabled={sessionActive}
               title="Reset to defaults"
-              className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:bg-border hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
+              className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
             >
               <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
             </button>

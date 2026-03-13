@@ -98,7 +98,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
     const playerTotals = getHandTotals(playerCards);
     if (playerTotals.bestTotal >= 21) break;
 
-    const canDouble = isFirstAction && playerCards.length === 2;
+    const canDouble = isFirstAction && playerCards.length === 2 && (rules.allowDouble !== false);
     const canSplit = false; // splits not yet implemented
     const canSurrender = isFirstAction && (rules.allowSurrender !== false);
 

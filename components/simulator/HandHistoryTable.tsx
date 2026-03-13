@@ -4,6 +4,7 @@ import type { SessionRoundRecord } from "@/types/simulation";
 
 interface HandHistoryTableProps {
   rounds: SessionRoundRecord[];
+  fillHeight?: boolean;
 }
 
 const resultColors: Record<string, string> = {
@@ -14,11 +15,11 @@ const resultColors: Record<string, string> = {
   surrender: "text-[#9b6dff]",
 };
 
-export default function HandHistoryTable({ rounds }: HandHistoryTableProps) {
+export default function HandHistoryTable({ rounds, fillHeight }: HandHistoryTableProps) {
   const displayRounds = [...rounds].reverse().slice(0, 50);
 
   return (
-    <div className="rounded-md border border-border bg-panel p-4">
+    <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "h-full" : ""}`}>
       <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-text">
         History
       </h2>
@@ -27,14 +28,14 @@ export default function HandHistoryTable({ rounds }: HandHistoryTableProps) {
           No games yet
         </p>
       ) : (
-        <div className="max-h-52 overflow-auto">
+        <div className={`overflow-auto ${fillHeight ? "flex-1" : "max-h-52"}`}>
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-panel">
               <tr className="border-b border-border font-[family-name:var(--font-pixel)] text-[8px] text-muted">
-                <th className="pb-2 pr-3">Spin</th>
+                <th className="pb-2 pr-3">#</th>
                 <th className="pb-2 pr-3">Bet</th>
                 <th className="pb-2 pr-3">Result</th>
-                <th className="pb-2 pr-3">Wager</th>
+                <th className="pb-2 pr-3">P/L</th>
                 <th className="pb-2">Cash</th>
               </tr>
             </thead>
