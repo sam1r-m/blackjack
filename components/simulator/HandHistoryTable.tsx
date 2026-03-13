@@ -29,7 +29,7 @@ export default function HandHistoryTable({ rounds, fillHeight, compact }: HandHi
           No games yet
         </p>
       ) : (
-        <div className={`overflow-auto min-h-0 ${fillHeight ? "flex-1" : compact ? "max-h-32" : "max-h-52"}`}>
+        <div className={`overflow-auto min-h-0 ${fillHeight ? "flex-1" : compact ? "max-h-32" : "max-h-[490px]"}`}>
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-panel">
               <tr className="border-b border-border font-[family-name:var(--font-pixel)] text-[8px] text-muted">

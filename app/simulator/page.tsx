@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ControlPanel, {
   type SimulatorSettings,
   DEFAULT_SETTINGS,
@@ -59,7 +60,9 @@ function getBettingStrategy(type: string): BettingStrategy {
 
 export default function SimulatorPage() {
   const [activeTab, setActiveTab] = useState<Tab>("live");
-  const [wideLayout, setWideLayout] = useState(false);
+  const [wideLayout, setWideLayout] = useState(true);
+  const isMobile = useMediaQuery("(max-width: 1023px)");
+  const effectiveWideLayout = wideLayout && !isMobile;
 
   // lifted state so settings persist across tab switches
   const [liveSettings, setLiveSettings] = useState<SimulatorSettings>(DEFAULT_SETTINGS);
@@ -86,6 +89,7 @@ export default function SimulatorPage() {
             onClick={() => setWideLayout(!wideLayout)}
             title={wideLayout ? "Stacked layout" : "Wide layout"}
             className="hidden rounded-md border border-border px-2 py-1.5 text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none lg:flex lg:items-center lg:gap-1.5"
+            style={{ display: isMobile ? "none" : undefined }}
           >
             {wideLayout ? (
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -126,7 +130,8 @@ export default function SimulatorPage() {
         <LiveSessionTab
           settings={liveSettings}
           onSettingsChange={setLiveSettings}
-          wideLayout={wideLayout}
+          wideLayout={effectiveWideLayout}
+          isMobile={isMobile}
         />
       )}
       {activeTab === "montecarlo" && (
@@ -144,9 +149,11 @@ interface LiveSessionTabProps {
   settings: SimulatorSettings;
   onSettingsChange: (s: SimulatorSettings) => void;
   wideLayout: boolean;
+  isMobile: boolean;
 }
 
-function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionTabProps) {
+function LiveSessionTab({ settings, onSettingsChange, wideLayout, isMobile }: LiveSessionTabProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [rounds, setRounds] = useState<SessionRoundRecord[]>([]);
   const [currentBankroll, setCurrentBankroll] = useState(settings.bankroll);
   const [sessionActive, setSessionActive] = useState(false);
