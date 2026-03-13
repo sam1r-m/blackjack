@@ -3,6 +3,7 @@
 import { useState } from "react";
 import StrategyModal from "./StrategyModal";
 import Select from "@/components/common/Select";
+import NumberInput from "@/components/common/NumberInput";
 import type { DealerRule, BlackjackPayout } from "@/types/blackjack";
 import type { BettingStrategyType } from "@/types/simulation";
 
@@ -19,6 +20,32 @@ export interface SimulatorSettings {
   penetration: number;
 }
 
+export const DEFAULT_SETTINGS: SimulatorSettings = {
+  bankroll: 1000,
+  baseBet: 10,
+  deckCount: 6,
+  blackjackPayout: "3_to_2",
+  dealerRule: "hit_soft_17",
+  bettingStrategy: "martingale",
+  autoplay: false,
+  speed: 5,
+  tableMax: 500,
+  penetration: 0.75,
+};
+
+const SPEED_LABELS: Record<number, string> = {
+  1: "1x",
+  2: "2x",
+  3: "3x",
+  4: "4x",
+  5: "5x",
+  6: "6x",
+  7: "8x",
+  8: "10x",
+  9: "15x",
+  10: "20x",
+};
+
 interface ControlPanelProps {
   settings: SimulatorSettings;
   onSettingsChange: (s: SimulatorSettings) => void;
@@ -27,6 +54,7 @@ interface ControlPanelProps {
   isRunning: boolean;
   sessionActive: boolean;
   onReset: () => void;
+  onResetSettings: () => void;
 }
 
 export default function ControlPanel({
@@ -37,6 +65,7 @@ export default function ControlPanel({
   isRunning,
   sessionActive,
   onReset,
+  onResetSettings,
 }: ControlPanelProps) {
   const [showStrategy, setShowStrategy] = useState(false);
 
@@ -73,7 +102,7 @@ export default function ControlPanel({
           {settings.autoplay && (
             <div>
               <label className="mb-1 block font-[family-name:var(--font-pixel)] text-[8px] text-muted">
-                Speed {settings.speed * 100}ms
+                Speed {SPEED_LABELS[settings.speed] ?? `${settings.speed}x`}
               </label>
               <input
                 type="range"
@@ -91,7 +120,7 @@ export default function ControlPanel({
               onClick={onReset}
               className="w-full rounded-md border border-loss/30 py-2 font-[family-name:var(--font-pixel)] text-[8px] text-loss shadow-[0_2px_0_rgba(232,68,108,0.2)] transition-all hover:border-loss hover:bg-loss/10 active:translate-y-[1px] active:shadow-none"
             >
-              Reset
+              Reset Session
             </button>
           )}
         </div>
@@ -99,9 +128,19 @@ export default function ControlPanel({
 
       {/* settings */}
       <div className="rounded-md border border-border bg-panel p-4">
-        <h2 className="mb-3 font-[family-name:var(--font-pixel)] text-xs text-highlight">
-          Settings
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-[family-name:var(--font-pixel)] text-xs text-highlight">
+            Settings
+          </h2>
+          <button
+            onClick={onResetSettings}
+            disabled={sessionActive}
+            title="Reset to defaults"
+            className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:bg-border hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
+          >
+            <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
+          </button>
+        </div>
         <div className="space-y-3">
           <ControlField label="Decks">
             <Select
@@ -132,22 +171,32 @@ export default function ControlPanel({
           </ControlField>
 
           <ControlField label="Bankroll">
-            <input
-              type="number"
+            <NumberInput
               value={settings.bankroll}
-              onChange={(e) => update("bankroll", Number(e.target.value))}
+              onChange={(v) => update("bankroll", v)}
+              min={0}
+              step={100}
               disabled={sessionActive}
-              className="w-full"
             />
           </ControlField>
 
           <ControlField label="Initial Bet">
-            <input
-              type="number"
+            <NumberInput
               value={settings.baseBet}
-              onChange={(e) => update("baseBet", Number(e.target.value))}
+              onChange={(v) => update("baseBet", v)}
+              min={1}
+              step={5}
               disabled={sessionActive}
-              className="w-full"
+            />
+          </ControlField>
+
+          <ControlField label="Table Max">
+            <NumberInput
+              value={settings.tableMax}
+              onChange={(v) => update("tableMax", v)}
+              min={1}
+              step={50}
+              disabled={sessionActive}
             />
           </ControlField>
 

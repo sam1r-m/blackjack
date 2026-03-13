@@ -43,8 +43,8 @@ const resultLabel: Record<string, { text: string; color: string }> = {
   win: { text: "WIN", color: "text-accent" },
   blackjack: { text: "BLACKJACK!", color: "text-highlight" },
   loss: { text: "LOSS", color: "text-loss" },
-  push: { text: "PUSH", color: "text-muted" },
-  surrender: { text: "SURRENDER", color: "text-info" },
+  push: { text: "PUSH", color: "text-info" },
+  surrender: { text: "SURRENDER", color: "text-[#9b6dff]" },
 };
 
 export default function GameDisplay({

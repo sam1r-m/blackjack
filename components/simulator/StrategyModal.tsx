@@ -21,8 +21,11 @@ export default function StrategyModal({ isOpen, onClose }: StrategyModalProps) {
           priority
         />
         <p className="text-center text-xs text-muted">
-          standard basic strategy chart for multi-deck blackjack. use this as a
-          reference for optimal play decisions.
+          Standard basic strategy chart for blackjack. This is optimal play for all hand 
+          combinations (bringing the house edge down to around 0.5%) unless you're counting cards!{" "}
+          <a href="https://www.blackjackapprenticeship.com/blackjack-strategy-charts/" target="_blank" rel="noopener noreferrer" className="text-info hover:underline">
+            Source
+          </a>.
         </p>
       </div>
     </Modal>

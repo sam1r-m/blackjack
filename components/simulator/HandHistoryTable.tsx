@@ -10,8 +10,8 @@ const resultColors: Record<string, string> = {
   win: "text-accent",
   blackjack: "text-highlight",
   loss: "text-loss",
-  push: "text-muted",
-  surrender: "text-info",
+  push: "text-info",
+  surrender: "text-[#9b6dff]",
 };
 
 export default function HandHistoryTable({ rounds }: HandHistoryTableProps) {

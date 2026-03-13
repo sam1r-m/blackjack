@@ -4,12 +4,14 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import ControlPanel, {
   type SimulatorSettings,
+  DEFAULT_SETTINGS,
 } from "@/components/simulator/ControlPanel";
 import BankrollGraph from "@/components/simulator/BankrollGraph";
 import HandHistoryTable from "@/components/simulator/HandHistoryTable";
 import GameDisplay from "@/components/simulator/GameDisplay";
 import MonteCarloControls, {
   type MonteCarloSettings,
+  DEFAULT_MC_SETTINGS,
 } from "@/components/montecarlo/MonteCarloControls";
 import MonteCarloSummary from "@/components/montecarlo/MonteCarloSummary";
 import DistributionChart from "@/components/montecarlo/DistributionChart";
@@ -51,6 +53,10 @@ function getBettingStrategy(type: string): BettingStrategy {
 export default function SimulatorPage() {
   const [activeTab, setActiveTab] = useState<Tab>("live");
 
+  // lifted state so settings persist across tab switches
+  const [liveSettings, setLiveSettings] = useState<SimulatorSettings>(DEFAULT_SETTINGS);
+  const [mcSettings, setMcSettings] = useState<MonteCarloSettings>(DEFAULT_MC_SETTINGS);
+
   return (
     <div className="min-h-screen px-4 py-4 md:px-6">
       {/* top bar */}
@@ -58,12 +64,13 @@ export default function SimulatorPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="rounded-md border border-border px-3 py-1.5 font-[family-name:var(--font-pixel)] text-[10px] text-muted transition-all hover:border-accent hover:text-accent"
+            className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 font-[family-name:var(--font-pixel)] text-[10px] leading-none text-muted transition-all hover:border-accent hover:text-accent"
           >
-            ◄ Home
+            <span className="translate-y-px">◄</span>
+            <span>Home</span>
           </Link>
           <h1 className="font-[family-name:var(--font-pixel)] text-sm text-text md:text-base">
-            Blackjack Martingale
+            Blackjack Simulator
           </h1>
         </div>
       </div>
@@ -85,27 +92,29 @@ export default function SimulatorPage() {
         ))}
       </div>
 
-      {activeTab === "live" && <LiveSessionTab />}
-      {activeTab === "montecarlo" && <MonteCarloTab />}
+      {activeTab === "live" && (
+        <LiveSessionTab
+          settings={liveSettings}
+          onSettingsChange={setLiveSettings}
+        />
+      )}
+      {activeTab === "montecarlo" && (
+        <MonteCarloTab
+          settings={mcSettings}
+          onSettingsChange={setMcSettings}
+        />
+      )}
       {activeTab === "history" && <HistoryTab />}
     </div>
   );
 }
 
-function LiveSessionTab() {
-  const [settings, setSettings] = useState<SimulatorSettings>({
-    bankroll: 1000,
-    baseBet: 10,
-    deckCount: 6,
-    blackjackPayout: "3_to_2",
-    dealerRule: "hit_soft_17",
-    bettingStrategy: "martingale",
-    autoplay: false,
-    speed: 5,
-    tableMax: 500,
-    penetration: 0.75,
-  });
+interface LiveSessionTabProps {
+  settings: SimulatorSettings;
+  onSettingsChange: (s: SimulatorSettings) => void;
+}
 
+function LiveSessionTab({ settings, onSettingsChange }: LiveSessionTabProps) {
   const [rounds, setRounds] = useState<SessionRoundRecord[]>([]);
   const [currentBankroll, setCurrentBankroll] = useState(settings.bankroll);
   const [sessionActive, setSessionActive] = useState(false);
@@ -140,7 +149,7 @@ function LiveSessionTab() {
       if (autoplayRef.current) {
         clearInterval(autoplayRef.current);
         autoplayRef.current = null;
-        setSettings((s) => ({ ...s, autoplay: false }));
+        onSettingsChange({ ...settings, autoplay: false });
       }
       return;
     }
@@ -184,10 +193,10 @@ function LiveSessionTab() {
       if (autoplayRef.current) {
         clearInterval(autoplayRef.current);
         autoplayRef.current = null;
-        setSettings((s) => ({ ...s, autoplay: false }));
+        onSettingsChange({ ...settings, autoplay: false });
       }
     }
-  }, [rounds, currentBankroll, settings]);
+  }, [rounds, currentBankroll, settings, onSettingsChange]);
 
   useEffect(() => {
     if (settings.autoplay && !autoplayRef.current) {
@@ -220,11 +229,15 @@ function LiveSessionTab() {
     setCurrentBankroll(settings.bankroll);
     setSessionActive(false);
     setLastOutcome(null);
-    setSettings((s) => ({ ...s, autoplay: false }));
+    onSettingsChange({ ...settings, autoplay: false });
   };
 
   const handleToggleAutoplay = () => {
-    setSettings((s) => ({ ...s, autoplay: !s.autoplay }));
+    onSettingsChange({ ...settings, autoplay: !settings.autoplay });
+  };
+
+  const handleResetSettings = () => {
+    onSettingsChange({ ...DEFAULT_SETTINGS });
   };
 
   return (
@@ -232,12 +245,13 @@ function LiveSessionTab() {
       <div className="space-y-4">
         <ControlPanel
           settings={settings}
-          onSettingsChange={setSettings}
+          onSettingsChange={onSettingsChange}
           onDealHand={dealOneHand}
           onToggleAutoplay={handleToggleAutoplay}
           isRunning={isRunning}
           sessionActive={sessionActive}
           onReset={handleReset}
+          onResetSettings={handleResetSettings}
         />
 
         {/* stats */}
@@ -301,20 +315,12 @@ function LiveSessionTab() {
   );
 }
 
-function MonteCarloTab() {
-  const [settings, setSettings] = useState<MonteCarloSettings>({
-    sessionCount: 1000,
-    handsPerSession: 100,
-    initialBankroll: 1000,
-    baseBet: 10,
-    tableMax: 500,
-    bettingStrategy: "martingale",
-    deckCount: 6,
-    blackjackPayout: "3_to_2",
-    dealerRule: "hit_soft_17",
-    penetration: 0.75,
-  });
+interface MonteCarloTabProps {
+  settings: MonteCarloSettings;
+  onSettingsChange: (s: MonteCarloSettings) => void;
+}
 
+function MonteCarloTab({ settings, onSettingsChange }: MonteCarloTabProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [aggregate, setAggregate] = useState<MonteCarloAggregate | null>(null);
   const [sessions, setSessions] = useState<MonteCarloSessionSample[]>([]);
@@ -348,19 +354,24 @@ function MonteCarloTab() {
     }, 50);
   }, [settings]);
 
+  const handleResetSettings = () => {
+    onSettingsChange({ ...DEFAULT_MC_SETTINGS });
+  };
+
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
       <div className="space-y-4">
         <MonteCarloControls
           settings={settings}
-          onSettingsChange={setSettings}
+          onSettingsChange={onSettingsChange}
           onRun={handleRun}
           isRunning={isRunning}
+          onResetSettings={handleResetSettings}
         />
       </div>
       <div className="space-y-4">
         <MonteCarloSummary aggregate={aggregate} />
-        <DistributionChart sessions={sessions} />
+        <DistributionChart sessions={sessions} initialBankroll={settings.initialBankroll} />
       </div>
     </div>
   );
