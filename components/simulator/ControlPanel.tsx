@@ -21,6 +21,8 @@ export interface SimulatorSettings {
   penetration: number;
   allowSurrender: boolean;
   allowDouble: boolean;
+  manualMode: boolean;
+  showBasicStrategy: boolean;
 }
 
 export const DEFAULT_SETTINGS: SimulatorSettings = {
@@ -36,6 +38,8 @@ export const DEFAULT_SETTINGS: SimulatorSettings = {
   penetration: 0.75,
   allowSurrender: true,
   allowDouble: true,
+  manualMode: false,
+  showBasicStrategy: false,
 };
 
 const SPEED_LABELS: Record<number, string> = {
@@ -60,6 +64,7 @@ interface ControlPanelProps {
   sessionActive: boolean;
   onReset: () => void;
   onResetSettings: () => void;
+  canDealHand?: boolean;
 }
 
 export default function ControlPanel({
@@ -71,6 +76,7 @@ export default function ControlPanel({
   sessionActive,
   onReset,
   onResetSettings,
+  canDealHand = true,
 }: ControlPanelProps) {
   const [showStrategy, setShowStrategy] = useState(false);
 
@@ -88,14 +94,15 @@ export default function ControlPanel({
         <div className="space-y-2.5">
           <button
             onClick={onDealHand}
-            disabled={isRunning}
+            disabled={isRunning || !canDealHand}
             className="w-full rounded-md border-2 border-highlight bg-highlight py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide text-bg shadow-[0_3px_0_#c9981a] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-[0_1px_0_#c9981a] disabled:opacity-50"
           >
             Play One Hand
           </button>
           <button
             onClick={onToggleAutoplay}
-            className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide transition-all active:translate-y-[2px] ${
+            disabled={settings.manualMode}
+            className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide transition-all active:translate-y-[2px] disabled:opacity-50 ${
               settings.autoplay
                 ? "border-accent bg-accent text-bg shadow-[0_3px_0_#248a6e] active:shadow-[0_1px_0_#248a6e]"
                 : "border-accent bg-accent/10 text-accent shadow-[0_3px_0_#1a3d32] hover:bg-accent/20 active:shadow-[0_1px_0_#1a3d32]"
@@ -117,6 +124,48 @@ export default function ControlPanel({
                 onChange={(e) => update("speed", Number(e.target.value))}
                 className="w-full"
               />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-2">
+            <label className="font-[family-name:var(--font-pixel)] text-[8px] text-muted">
+              Manual mode
+            </label>
+            <button
+              onClick={() => {
+                const next = !settings.manualMode;
+                onSettingsChange({
+                  ...settings,
+                  manualMode: next,
+                  autoplay: next ? false : settings.autoplay,
+                });
+              }}
+              disabled={sessionActive}
+              className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
+                settings.manualMode
+                  ? "border-accent/40 text-accent hover:border-accent hover:bg-accent/10"
+                  : "border-border text-muted hover:border-muted hover:bg-border/50"
+              }`}
+            >
+              {settings.manualMode ? "ON" : "OFF"}
+            </button>
+          </div>
+
+          {settings.manualMode && (
+            <div className="flex items-center justify-between gap-2">
+              <label className="font-[family-name:var(--font-pixel)] text-[8px] text-muted">
+                Show basic strategy
+              </label>
+              <button
+                onClick={() => update("showBasicStrategy", !settings.showBasicStrategy)}
+                className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none ${
+                  settings.showBasicStrategy
+                    ? "border-info/40 text-info hover:border-info hover:bg-info/10"
+                    : "border-border text-muted hover:border-muted hover:bg-border/50"
+                }`}
+              >
+                {settings.showBasicStrategy ? "ON" : "OFF"}
+              </button>
             </div>
           )}
 

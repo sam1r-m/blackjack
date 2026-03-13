@@ -19,12 +19,19 @@ import HistoryTable from "@/components/history/HistoryTable";
 
 import { Shoe } from "@/lib/engine/shoe";
 import { runRound } from "@/lib/engine/round";
+import {
+  startManualRound,
+  applyManualAction,
+  getRecommendedAction,
+  type ManualRoundPending,
+  type ManualRoundPendingDisplay,
+} from "@/lib/engine/manualRound";
 import { basicStrategy } from "@/lib/strategies/basicStrategy";
 import { flatBetStrategy } from "@/lib/betting/flatBet";
 import { martingaleStrategy } from "@/lib/betting/martingale";
 import { runMonteCarlo } from "@/lib/simulation/monteCarloRunner";
 
-import type { RoundOutcome } from "@/types/blackjack";
+import type { RoundOutcome, PlayerAction } from "@/types/blackjack";
 import type {
   SessionRoundRecord,
   MonteCarloAggregate,
@@ -146,9 +153,37 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
   const [isRunning] = useState(false);
   const [lastOutcome, setLastOutcome] = useState<RoundOutcome | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [manualPendingDisplay, setManualPendingDisplay] =
+    useState<ManualRoundPendingDisplay | null>(null);
 
   const shoeRef = useRef<Shoe | null>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const manualPendingRef = useRef<ManualRoundPending | null>(null);
+
+  const processOutcome = useCallback(
+    (outcome: RoundOutcome, bet: number) => {
+      const newBankroll = currentBankroll + outcome.netWin;
+      const roundNumber = rounds.length + 1;
+      const record: SessionRoundRecord = {
+        roundNumber,
+        bet,
+        result: outcome.result,
+        bankrollBefore: currentBankroll,
+        bankrollAfter: newBankroll,
+        netWin: outcome.netWin,
+        doubled: outcome.doubled,
+      };
+      setLastOutcome(outcome);
+      setRounds((prev) => [...prev, record]);
+      setCurrentBankroll(newBankroll);
+      if (newBankroll <= 0 && autoplayRef.current) {
+        clearInterval(autoplayRef.current);
+        autoplayRef.current = null;
+        onSettingsChange({ ...settings, autoplay: false });
+      }
+    },
+    [rounds.length, currentBankroll, settings, onSettingsChange]
+  );
 
   const dealOneHand = useCallback(() => {
     if (!shoeRef.current) {
@@ -182,59 +217,83 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 150);
 
-    const outcome = runRound(
-      {
-        rules: {
-          dealerRule: settings.dealerRule,
-          blackjackPayout: settings.blackjackPayout,
-          allowSurrender: settings.allowSurrender,
-          allowDouble: settings.allowDouble,
-        },
+    const config = {
+      rules: {
+        dealerRule: settings.dealerRule,
+        blackjackPayout: settings.blackjackPayout,
+        allowSurrender: settings.allowSurrender,
+        allowDouble: settings.allowDouble,
       },
-      {
-        shoe: shoeRef.current,
-        bet: betResult.bet,
-        playerPolicy: basicStrategy,
-        deckCount: settings.deckCount,
-      }
-    );
-
-    setLastOutcome(outcome);
-
-    const newBankroll = currentBankroll + outcome.netWin;
-    const roundNumber = rounds.length + 1;
-
-    const record: SessionRoundRecord = {
-      roundNumber,
-      bet: betResult.bet,
-      result: outcome.result,
-      bankrollBefore: currentBankroll,
-      bankrollAfter: newBankroll,
-      netWin: outcome.netWin,
-      doubled: outcome.doubled,
     };
 
-    setRounds((prev) => [...prev, record]);
-    setCurrentBankroll(newBankroll);
-
-    if (newBankroll <= 0) {
-      if (autoplayRef.current) {
-        clearInterval(autoplayRef.current);
-        autoplayRef.current = null;
-        onSettingsChange({ ...settings, autoplay: false });
+    if (settings.manualMode) {
+      const result = startManualRound(
+        config,
+        shoeRef.current,
+        betResult.bet,
+        settings.deckCount
+      );
+      if (result.status === "outcome") {
+        processOutcome(result.outcome, betResult.bet);
+      } else {
+        manualPendingRef.current = result.pending;
+        setManualPendingDisplay({
+          playerCards: result.pending.playerCards,
+          dealerCards: result.pending.dealerCards,
+          currentBet: result.pending.currentBet,
+          isFirstAction: result.pending.isFirstAction,
+          config: result.pending.config,
+          deckCount: result.pending.deckCount,
+        });
+        setLastOutcome(null);
       }
+      return;
     }
-  }, [rounds, currentBankroll, settings, onSettingsChange]);
+
+    const outcome = runRound(config, {
+      shoe: shoeRef.current,
+      bet: betResult.bet,
+      playerPolicy: basicStrategy,
+      deckCount: settings.deckCount,
+    });
+    processOutcome(outcome, betResult.bet);
+  }, [rounds, currentBankroll, settings, onSettingsChange, processOutcome]);
+
+  const applyManualPlayerAction = useCallback(
+    (action: PlayerAction) => {
+      const pending = manualPendingRef.current;
+      if (!pending) return;
+
+      const result = applyManualAction(pending, action);
+
+      if (result.status === "outcome") {
+        manualPendingRef.current = null;
+        setManualPendingDisplay(null);
+        processOutcome(result.outcome, result.outcome.bet);
+      } else {
+        manualPendingRef.current = result.pending;
+        setManualPendingDisplay({
+          playerCards: result.pending.playerCards,
+          dealerCards: result.pending.dealerCards,
+          currentBet: result.pending.currentBet,
+          isFirstAction: result.pending.isFirstAction,
+          config: result.pending.config,
+          deckCount: result.pending.deckCount,
+        });
+      }
+    },
+    [processOutcome]
+  );
 
   useEffect(() => {
-    if (settings.autoplay && !autoplayRef.current) {
+    if (settings.autoplay && !settings.manualMode && !autoplayRef.current) {
       const interval = Math.max(50, 1100 - settings.speed * 100);
       autoplayRef.current = setInterval(() => {
         dealOneHand();
       }, interval);
     }
 
-    if (!settings.autoplay && autoplayRef.current) {
+    if ((!settings.autoplay || settings.manualMode) && autoplayRef.current) {
       clearInterval(autoplayRef.current);
       autoplayRef.current = null;
     }
@@ -245,7 +304,7 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
         autoplayRef.current = null;
       }
     };
-  }, [settings.autoplay, settings.speed, dealOneHand]);
+  }, [settings.autoplay, settings.manualMode, settings.speed, dealOneHand]);
 
   const handleReset = () => {
     if (autoplayRef.current) {
@@ -253,6 +312,8 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
       autoplayRef.current = null;
     }
     shoeRef.current = null;
+    manualPendingRef.current = null;
+    setManualPendingDisplay(null);
     setRounds([]);
     setCurrentBankroll(settings.bankroll);
     setSessionActive(false);
@@ -329,6 +390,7 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
           isRunning={isRunning}
           sessionActive={sessionActive}
           onReset={handleReset}
+          canDealHand={!manualPendingDisplay}
           onResetSettings={handleResetSettings}
         />
         {!wideLayout && statsTile}
@@ -343,6 +405,16 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
             currentBankroll={currentBankroll}
             isAnimating={isAnimating}
             handNumber={rounds.length}
+            manualPending={manualPendingDisplay}
+            onManualAction={applyManualPlayerAction}
+            recommendedAction={
+              manualPendingDisplay &&
+              settings.showBasicStrategy &&
+              manualPendingRef.current
+                ? getRecommendedAction(manualPendingRef.current)
+                : null
+            }
+            showBasicStrategy={settings.showBasicStrategy}
           />
         </div>
         <div className={wideLayout ? "flex min-h-0 flex-1 flex-col" : ""}>
@@ -356,10 +428,8 @@ function LiveSessionTab({ settings, onSettingsChange, wideLayout }: LiveSessionT
       </div>
 
       {wideLayout && (
-        <div className="flex min-h-0 flex-col gap-4">
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <HandHistoryTable rounds={rounds} fillHeight />
-          </div>
+        <div className="flex flex-col gap-4">
+          <HandHistoryTable rounds={rounds} />
           {statsTile}
         </div>
       )}
