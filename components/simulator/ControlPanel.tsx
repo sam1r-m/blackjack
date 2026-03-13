@@ -18,6 +18,7 @@ export interface SimulatorSettings {
   speed: number;
   tableMax: number;
   penetration: number;
+  allowSurrender: boolean;
 }
 
 export const DEFAULT_SETTINGS: SimulatorSettings = {
@@ -31,6 +32,7 @@ export const DEFAULT_SETTINGS: SimulatorSettings = {
   speed: 5,
   tableMax: 500,
   penetration: 0.75,
+  allowSurrender: true,
 };
 
 const SPEED_LABELS: Record<number, string> = {
@@ -132,14 +134,28 @@ export default function ControlPanel({
           <h2 className="font-[family-name:var(--font-pixel)] text-xs text-highlight">
             Settings
           </h2>
-          <button
-            onClick={onResetSettings}
-            disabled={sessionActive}
-            title="Reset to defaults"
-            className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:bg-border hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
-          >
-            <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
-          </button>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => update("allowSurrender", !settings.allowSurrender)}
+              disabled={sessionActive}
+              title={settings.allowSurrender ? "Surrender allowed" : "Surrender disabled"}
+              className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
+                settings.allowSurrender
+                  ? "border-[#9b6dff]/40 text-[#9b6dff]"
+                  : "border-border text-muted"
+              }`}
+            >
+              SUR
+            </button>
+            <button
+              onClick={onResetSettings}
+              disabled={sessionActive}
+              title="Reset to defaults"
+              className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:bg-border hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
+            >
+              <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
+            </button>
+          </div>
         </div>
         <div className="space-y-3">
           <ControlField label="Decks">

@@ -162,6 +162,7 @@ function LiveSessionTab({ settings, onSettingsChange }: LiveSessionTabProps) {
         rules: {
           dealerRule: settings.dealerRule,
           blackjackPayout: settings.blackjackPayout,
+          allowSurrender: settings.allowSurrender,
         },
       },
       {

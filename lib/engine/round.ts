@@ -96,7 +96,7 @@ export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
 
     const canDouble = isFirstAction && playerCards.length === 2;
     const canSplit = false; // splits not yet implemented
-    const canSurrender = isFirstAction;
+    const canSurrender = isFirstAction && (rules.allowSurrender !== false);
 
     const state: GameStateView = {
       playerHand: {
