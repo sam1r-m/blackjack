@@ -68,6 +68,14 @@ const resultLabel: Record<string, { text: string; color: string }> = {
   surrender: { text: "SURRENDER", color: "text-[#9b6dff]" },
 };
 
+const plColors: Record<string, string> = {
+  win: "text-accent",
+  blackjack: "text-highlight",
+  loss: "text-loss",
+  push: "text-info",
+  surrender: "text-[#9b6dff]",
+};
+
 const actionLabels: Record<PlayerAction, string> = {
   hit: "Hit",
   stand: "Stand",
@@ -260,9 +268,16 @@ export default function GameDisplay({
                 ${displayPending?.currentBet ?? displayOutcome?.bet ?? 0}
               </span>
             </span>
-            <span>
-              <span className="font-bold text-bg">Cash:</span>{" "}
-              <span className="text-highlight">${currentBankroll.toFixed(0)}</span>
+            <span className="flex items-center gap-1.5">
+              {lastOutcome && (
+                <span className={plColors[lastOutcome.result] ?? "text-muted"}>
+                  ({lastOutcome.netWin >= 0 ? "+" : ""}{lastOutcome.netWin})
+                </span>
+              )}
+              <span>
+                <span className="font-bold text-bg">Cash:</span>{" "}
+                <span className="text-highlight">${currentBankroll.toFixed(0)}</span>
+              </span>
             </span>
           </div>
         )}
