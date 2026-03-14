@@ -24,15 +24,15 @@ export default function HandHistoryTable({ rounds, fillHeight, compact }: HandHi
       <h2 className="mb-3 shrink-0 font-[family-name:var(--font-pixel)] text-xs text-text">
         History
       </h2>
-      <div className={`flex overflow-auto min-h-0 ${fillHeight ? "flex-1" : compact ? "h-32" : "h-[490px]"}`}>
+      <div className={`overflow-auto min-h-0 ${fillHeight ? "flex-1" : compact ? "h-32" : "h-[490px]"}`}>
         {displayRounds.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center min-w-full">
+          <div className="flex h-full min-h-full items-center justify-center">
             <p className="font-[family-name:var(--font-pixel)] text-[10px] text-muted">
               No games yet
             </p>
           </div>
         ) : (
-          <table className="w-full text-left shrink-0">
+          <table className="w-full text-left">
             <thead className="sticky top-0 bg-panel">
               <tr className="border-b border-border font-[family-name:var(--font-pixel)] text-[8px] text-muted">
                 <th className="pb-2 pr-3">#</th>

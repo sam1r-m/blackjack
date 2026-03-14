@@ -40,10 +40,15 @@ export default function Home() {
           [ START SIMULATION ]
         </Link>
 
-        {/* subtle tagline */}
-        <span className="font-[family-name:var(--font-mono)] text-xs tracking-wider text-muted/40">
-          probability · stochastic processes · risk analytics
-        </span>
+        {/* copyright */}
+        <a
+          href="https://github.com/sam1r-m/blackjack"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-[family-name:var(--font-mono)] text-xs tracking-wider text-muted/40 transition-colors hover:text-muted/70"
+        >
+          © 2026 SAMIR
+        </a>
       </div>
     </div>
   );
