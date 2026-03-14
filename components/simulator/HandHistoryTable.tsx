@@ -17,7 +17,7 @@ const resultColors: Record<string, string> = {
 };
 
 export default function HandHistoryTable({ rounds, fillHeight, compact }: HandHistoryTableProps) {
-  const displayRounds = [...rounds].reverse().slice(0, 50);
+  const displayRounds = [...rounds].reverse().slice(0, 100);
 
   return (
     <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "h-full min-h-0" : ""}`}>
