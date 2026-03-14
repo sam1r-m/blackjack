@@ -127,46 +127,40 @@ export default function ControlPanel({
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2">
-            <label className="font-[family-name:var(--font-pixel)] text-[8px] text-muted">
-              Manual Mode
-            </label>
-            <button
-              onClick={() => {
-                const next = !settings.manualMode;
-                onSettingsChange({
-                  ...settings,
-                  manualMode: next,
-                  autoplay: next ? false : settings.autoplay,
-                });
-              }}
-              disabled={sessionActive}
-              className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
-                settings.manualMode
-                  ? "border-accent/40 text-accent hover:border-accent hover:bg-accent/10"
-                  : "border-border text-muted hover:border-muted hover:bg-border/50"
-              }`}
-            >
-              {settings.manualMode ? "ON" : "OFF"}
-            </button>
+          <div className="pt-2.5 pb-[5.5px]">
+            <div className="border-t border-border" />
           </div>
 
+          <button
+            onClick={() => {
+              const next = !settings.manualMode;
+              onSettingsChange({
+                ...settings,
+                manualMode: next,
+                autoplay: next ? false : settings.autoplay,
+              });
+            }}
+            disabled={sessionActive}
+            className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide transition-all active:translate-y-[2px] disabled:pointer-events-none disabled:opacity-30 ${
+              settings.manualMode
+                ? "border-accent bg-accent/20 text-accent shadow-[0_3px_0_#1a3d32] hover:bg-accent/30 active:shadow-[0_1px_0_#1a3d32]"
+                : "border-border bg-panel text-muted shadow-[0_2px_0_#1e2a35] hover:border-muted hover:bg-border/50 hover:text-text active:shadow-none"
+            }`}
+          >
+            Manual Mode {settings.manualMode ? "ON" : "OFF"}
+          </button>
+
           {settings.manualMode && (
-            <div className="flex items-center justify-between gap-2">
-              <label className="font-[family-name:var(--font-pixel)] text-[8px] text-muted">
-                Show Basic Strategy
-              </label>
-              <button
-                onClick={() => update("showBasicStrategy", !settings.showBasicStrategy)}
-                className={`rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none ${
-                  settings.showBasicStrategy
-                    ? "border-info/40 text-info hover:border-info hover:bg-info/10"
-                    : "border-border text-muted hover:border-muted hover:bg-border/50"
-                }`}
-              >
-                {settings.showBasicStrategy ? "ON" : "OFF"}
-              </button>
-            </div>
+            <button
+              onClick={() => update("showBasicStrategy", !settings.showBasicStrategy)}
+              className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide transition-all active:translate-y-[2px] ${
+                settings.showBasicStrategy
+                  ? "border-info bg-info/20 text-info shadow-[0_3px_0_#1a2d4d] hover:bg-info/30 active:shadow-[0_1px_0_#1a2d4d]"
+                  : "border-border bg-panel text-muted shadow-[0_2px_0_#1e2a35] hover:border-muted hover:bg-border/50 hover:text-text active:shadow-none"
+              }`}
+            >
+              Basic Strategy {settings.showBasicStrategy ? "ON" : "OFF"}
+            </button>
           )}
 
           {sessionActive && (

@@ -99,26 +99,46 @@ export default function SimulatorPage() {
           </h1>
         </div>
         {activeTab === "live" && (
-          <button
-            onClick={() => setWideLayout(!wideLayout)}
-            title={wideLayout ? "Stacked layout" : "Wide layout"}
-            className="hidden rounded-md border border-border px-2 py-1.5 text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none lg:flex lg:items-center lg:gap-1.5"
+          <div
+            role="group"
+            aria-label="Layout mode"
+            className="hidden lg:flex relative rounded-full border border-border bg-panel p-0.5 shadow-[0_2px_0_#1e2a35]"
           >
-            {wideLayout ? (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="1" y="1" width="14" height="6" rx="1" />
-                <rect x="1" y="9" width="14" height="6" rx="1" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            {/* Sliding pill indicator */}
+            <div
+              className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-full bg-accent shadow-sm transition-all duration-300 ease-out"
+              style={{
+                left: "2px",
+                transform: wideLayout ? "translateX(0)" : "translateX(100%)",
+              }}
+            />
+            <button
+              onClick={() => setWideLayout(true)}
+              title="Wide layout"
+              className={`relative z-10 flex min-w-[4.5rem] flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 font-[family-name:var(--font-pixel)] text-[7px] transition-colors duration-200 ${
+                wideLayout ? "text-bg" : "text-muted hover:text-text"
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <rect x="1" y="1" width="6" height="14" rx="1" />
                 <rect x="9" y="1" width="6" height="14" rx="1" />
               </svg>
-            )}
-            <span className="font-[family-name:var(--font-pixel)] text-[7px]">
-              {wideLayout ? "Stack" : "Wide"}
-            </span>
-          </button>
+              Wide
+            </button>
+            <button
+              onClick={() => setWideLayout(false)}
+              title="Stacked layout"
+              className={`relative z-10 flex min-w-[4.5rem] flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 font-[family-name:var(--font-pixel)] text-[7px] transition-colors duration-200 ${
+                !wideLayout ? "text-bg" : "text-muted hover:text-text"
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="1" y="1" width="14" height="6" rx="1" />
+                <rect x="1" y="9" width="14" height="6" rx="1" />
+              </svg>
+              Stack
+            </button>
+          </div>
         )}
       </div>
 
@@ -336,6 +356,42 @@ function LiveSessionTab({
     };
   }, [settings.autoplay, settings.manualMode, settings.speed, dealOneHand]);
 
+  // Keyboard shortcuts: Space to deal, H/S/D/W for player actions
+  useEffect(() => {
+    if (!settings.manualMode) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+
+      if (manualPendingDisplay) {
+        const actionMap: Record<string, PlayerAction> = {
+          h: "hit",
+          s: "stand",
+          d: "double",
+          w: "surrender",
+        };
+        const key = e.key.toLowerCase();
+        const action = actionMap[key];
+        if (action) {
+          const pending = manualPendingRef.current;
+          if (!pending) return;
+          if (key === "d" && (!pending.isFirstAction || pending.playerCards.length !== 2 || pending.config.rules.allowDouble === false)) return;
+          if (key === "w" && (!pending.isFirstAction || pending.config.rules.allowSurrender === false)) return;
+          e.preventDefault();
+          applyManualPlayerAction(action);
+          return;
+        }
+      }
+
+      if (e.code === "Space" && !manualPendingDisplay && !isRunning) {
+        e.preventDefault();
+        dealOneHand();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [settings.manualMode, manualPendingDisplay, isRunning, dealOneHand, applyManualPlayerAction]);
+
   const handleReset = () => {
     if (autoplayRef.current) {
       clearInterval(autoplayRef.current);
@@ -467,6 +523,9 @@ function LiveSessionTab({
             handNumber={rounds.length}
             manualPending={manualPendingDisplay}
             onManualAction={applyManualPlayerAction}
+            onDealHand={dealOneHand}
+            canDealHand={!manualPendingDisplay && !isRunning}
+            manualMode={settings.manualMode}
             recommendedAction={
               manualPendingDisplay &&
               settings.showBasicStrategy &&
