@@ -129,7 +129,7 @@ export default function ControlPanel({
 
           <div className="flex items-center justify-between gap-2">
             <label className="font-[family-name:var(--font-pixel)] text-[8px] text-muted">
-              Manual mode
+              Manual Mode
             </label>
             <button
               onClick={() => {
@@ -154,7 +154,7 @@ export default function ControlPanel({
           {settings.manualMode && (
             <div className="flex items-center justify-between gap-2">
               <label className="font-[family-name:var(--font-pixel)] text-[8px] text-muted">
-                Show basic strategy
+                Show Basic Strategy
               </label>
               <button
                 onClick={() => update("showBasicStrategy", !settings.showBasicStrategy)}
@@ -187,7 +187,7 @@ export default function ControlPanel({
             Settings
           </h2>
           <div className="flex gap-1.5">
-            <Tooltip content={settings.allowDouble ? "Doubling allowed" : "Doubling disabled"}>
+            <Tooltip content={settings.allowDouble ? "Doubling Enabled" : "Doubling Disabled"}>
               <button
                 onClick={() => update("allowDouble", !settings.allowDouble)}
                 disabled={sessionActive}
@@ -200,7 +200,7 @@ export default function ControlPanel({
                 2x
               </button>
             </Tooltip>
-            <Tooltip content={settings.allowSurrender ? "Surrender allowed" : "Surrender disabled"}>
+            <Tooltip content={settings.allowSurrender ? "Surrender Enabled" : "Surrender Disabled"}>
               <button
                 onClick={() => update("allowSurrender", !settings.allowSurrender)}
                 disabled={sessionActive}

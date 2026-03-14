@@ -72,7 +72,7 @@ export default function BankrollGraph({ rounds, initialBankroll, fillHeight }: B
       ctx.font = '10px "Press Start 2P", monospace';
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("play some hands", w / 2, h / 2);
+      ctx.fillText("Play some hands", w / 2, h / 2);
       return;
     }
 
@@ -94,7 +94,7 @@ export default function BankrollGraph({ rounds, initialBankroll, fillHeight }: B
     const barW = Math.min(maxBarW, Math.max(2, ((plotW / visible.length) | 0) - 1));
     const gap = 1;
 
-    // y domain: enforce a minimum range of ±10% of initial bankroll
+    // y domain: enforce a minimum range of + or -10% of initial bankroll
     // so the first few bars don't blow up to fill the entire chart
     const vals = [initialBankroll, ...visible.flatMap((c) => [c.open, c.close])];
     const dataMin = Math.min(...vals);
@@ -147,6 +147,34 @@ export default function BankrollGraph({ rounds, initialBankroll, fillHeight }: B
     ctx.lineTo(PAD.left + plotW, refY + 0.5);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // marker: triangle (left) + rectangle with initial bankroll label, on right side of graph
+    const boxW = 36;
+    const boxH = 12;
+    const triSize = 5;
+    const markerY = refY + 0.5;
+    const rectX = PAD.left + plotW + 4;
+    const boxY = markerY - boxH / 2;
+    const triX = rectX - triSize;
+    // triangle on left, pointing left (toward the line)
+    ctx.fillStyle = C.ref;
+    ctx.strokeStyle = C.ref;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(triX, markerY);
+    ctx.lineTo(triX + triSize, markerY - triSize);
+    ctx.lineTo(triX + triSize, markerY + triSize);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // rectangle (gold background)
+    ctx.fillRect(rectX, boxY, boxW, boxH);
+    ctx.strokeRect(rectX + 0.5, boxY + 0.5, boxW - 1, boxH - 1);
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`$${Math.round(initialBankroll)}`, rectX + boxW / 2, markerY);
 
     // draw candles
     for (let i = 0; i < visible.length; i++) {
@@ -205,15 +233,13 @@ export default function BankrollGraph({ rounds, initialBankroll, fillHeight }: B
 
   return (
     <div className={`flex flex-col rounded-md border border-border bg-panel p-4 ${fillHeight ? "min-h-0 flex-1" : "shrink-0"}`}>
-      <div className="mb-3 flex shrink-0 items-center justify-between">
+      <div className="mb-3 flex h-6 shrink-0 items-center justify-between">
         <h2 className="font-[family-name:var(--font-pixel)] text-xs text-text">
           Bankroll Chart
         </h2>
-        {rounds.length > 0 && (
-          <span className="font-[family-name:var(--font-mono)] text-sm text-accent">
-            ${currentBankroll.toFixed(0)}
-          </span>
-        )}
+        <span className="min-w-[3rem] text-right font-[family-name:var(--font-mono)] text-sm text-accent">
+          ${currentBankroll.toFixed(0)}
+        </span>
       </div>
       <div ref={wrapRef} className={fillHeight ? "min-h-[208px] flex-1" : "h-52 shrink-0"}>
         <canvas ref={canvasRef} className="block" />
