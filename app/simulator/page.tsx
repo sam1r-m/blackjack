@@ -448,7 +448,7 @@ function LiveSessionTab({
         </>
       )}
       <div
-        className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[260px_minmax(0,1.2fr)_minmax(0,0.65fr)] lg:min-h-[520px]" : "lg:grid-cols-[260px_1fr]"}`}
+        className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[minmax(0,0.625fr)_minmax(0,1.5fr)_minmax(0,0.625fr)] lg:min-h-[520px]" : "lg:grid-cols-[minmax(0,0.2915fr)_minmax(0,1fr)]"}`}
       >
         {!isMobile && (
           <div className={`flex flex-col gap-4 ${wideLayout ? "lg:justify-start" : ""}`}>
@@ -542,7 +542,7 @@ function MonteCarloTab({ settings, onSettingsChange }: MonteCarloTabProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.294fr)_minmax(0,1fr)]">
       <div className="space-y-4">
         <MonteCarloControls
           settings={settings}

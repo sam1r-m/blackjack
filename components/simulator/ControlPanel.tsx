@@ -197,7 +197,7 @@ export default function ControlPanel({
                     : "border-border text-muted hover:border-muted hover:bg-border/50"
                 }`}
               >
-                2x
+                Double (2x)
               </button>
             </Tooltip>
             <Tooltip content={settings.allowSurrender ? "Surrender Enabled" : "Surrender Disabled"}>
@@ -210,7 +210,7 @@ export default function ControlPanel({
                     : "border-border text-muted hover:border-muted hover:bg-border/50"
                 }`}
               >
-                SUR
+                Surrender
               </button>
             </Tooltip>
             <Tooltip content="Reset">
