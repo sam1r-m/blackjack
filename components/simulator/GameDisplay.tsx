@@ -4,6 +4,13 @@ import type { Card, RoundOutcome, PlayerAction } from "@/types/blackjack";
 import type { ManualRoundPendingDisplay } from "@/lib/engine/manualRound";
 import { getHandTotals } from "@/lib/engine/hand";
 
+const CHIP_DENOMS = [
+  { value: 5, src: "/5chip.png", label: "$5" },
+  { value: 10, src: "/10chip.png", label: "$10" },
+  { value: 25, src: "/25chip.png", label: "$25" },
+  { value: 50, src: "/50chip.png", label: "$50" },
+] as const;
+
 interface GameDisplayProps {
   lastOutcome: RoundOutcome | null;
   currentBankroll: number;
@@ -17,6 +24,14 @@ interface GameDisplayProps {
   onDealHand?: () => void;
   canDealHand?: boolean;
   manualMode?: boolean;
+  /** "strategy" = use martingale/flat; "live" = pick chips */
+  manualBettingMode?: "strategy" | "live";
+  /** Live betting: custom bet amount for manual mode */
+  manualBet?: number;
+  onAddChip?: (amount: number) => void;
+  onClearBet?: () => void;
+  tableMin?: number;
+  tableMax?: number;
 }
 
 function cardToSprite(card: Card): string {
@@ -112,6 +127,12 @@ export default function GameDisplay({
   onDealHand,
   canDealHand,
   manualMode,
+  manualBettingMode = "strategy",
+  manualBet = 0,
+  onAddChip,
+  onClearBet,
+  tableMin = 5,
+  tableMax = 500,
 }: GameDisplayProps) {
   const displayOutcome = lastOutcome;
   const displayPending = manualPending;
@@ -139,7 +160,7 @@ export default function GameDisplay({
 
   const feltBox = (
     <div
-      className="relative h-[360px] overflow-hidden rounded-xl border-[3px] border-[#1e2a35]"
+      className="relative h-[371px] overflow-hidden rounded-xl border-[3px] border-[#1e2a35]"
       style={{
         backgroundImage: "url(/Background_Green_Felt.png)",
         backgroundSize: "cover",
@@ -272,6 +293,50 @@ export default function GameDisplay({
           </div>
         )}
 
+        {/* Live betting: chip selector at top-left when manual mode + live betting + can deal */}
+        {manualMode && manualBettingMode === "live" && canDealHand && !displayPending && onAddChip && onClearBet && (
+          <div className="absolute left-4 top-4 flex flex-col items-start gap-2">
+            <div className="flex min-w-[7.5rem] items-center gap-2 rounded-lg border-2 border-dashed border-bg/40 bg-black/25 px-3 py-2">
+              <span className="font-[family-name:var(--font-pixel)] text-[8px] text-bg/80">Bet</span>
+              <span className="font-[family-name:var(--font-mono)] text-sm font-bold text-highlight">
+                ${manualBet}
+              </span>
+              <button
+                onClick={manualBet > tableMin ? onClearBet : undefined}
+                disabled={manualBet <= tableMin}
+                className="ml-auto rounded-md border border-loss/40 bg-loss/15 px-2.5 py-1 font-[family-name:var(--font-pixel)] text-[8px] font-medium text-loss/90 shadow-sm transition-all hover:bg-loss/25 hover:border-loss/60 hover:text-loss active:scale-95 disabled:pointer-events-none disabled:opacity-30 disabled:hover:bg-loss/15"
+                title="Clear bet"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="flex items-center gap-1">
+              {CHIP_DENOMS.map(({ value, src, label }) => {
+                const maxBet = Math.min(tableMax, currentBankroll);
+                const disabled = manualBet + value > maxBet;
+                return (
+                  <button
+                    key={value}
+                    onClick={() => !disabled && onAddChip(value)}
+                    disabled={disabled}
+                    className="transition-transform hover:scale-110 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+                    title={label}
+                  >
+                    <img
+                      src={src}
+                      alt={label}
+                      width={44}
+                      height={44}
+                      className="h-11 w-11 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]"
+                      style={{ imageRendering: "pixelated" }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Basic Strategy: right side of felt */}
         {showBasicStrategy && recommendedAction && (
           <div
@@ -290,12 +355,12 @@ export default function GameDisplay({
         )}
 
         {/* Corner HUD */}
-        <div className="absolute bottom-2 right-3 font-[family-name:var(--font-mono)] text-xs">
+        <div className="absolute bottom-2 right-3 font-[family-name:var(--font-mono)] text-[13px]">
           <span className="font-bold text-bg">Hand:</span>{" "}
           <span className="font-black text-text">{handNumber}</span>
         </div>
         {(displayPending || displayOutcome) && (
-          <div className="absolute right-3 top-2 flex flex-col items-end gap-0.5 font-[family-name:var(--font-mono)] text-xs">
+          <div className="absolute right-3 top-2 flex flex-col items-end gap-0.5 font-[family-name:var(--font-mono)] text-[13px]">
             <span>
               <span className="font-bold text-bg">Bet:</span>{" "}
               <span className="text-text">

@@ -8,6 +8,8 @@ import NumberInput from "@/components/common/NumberInput";
 import type { DealerRule, BlackjackPayout } from "@/types/blackjack";
 import type { BettingStrategyType } from "@/types/simulation";
 
+export type ManualBettingMode = "strategy" | "live";
+
 export interface SimulatorSettings {
   bankroll: number;
   baseBet: number;
@@ -22,6 +24,8 @@ export interface SimulatorSettings {
   allowSurrender: boolean;
   allowDouble: boolean;
   manualMode: boolean;
+  /** When manual mode: "strategy" = use martingale/flat/etc; "live" = pick chips */
+  manualBettingMode: ManualBettingMode;
   showBasicStrategy: boolean;
 }
 
@@ -39,6 +43,7 @@ export const DEFAULT_SETTINGS: SimulatorSettings = {
   allowSurrender: true,
   allowDouble: true,
   manualMode: false,
+  manualBettingMode: "strategy",
   showBasicStrategy: false,
 };
 
@@ -151,16 +156,47 @@ export default function ControlPanel({
           </button>
 
           {settings.manualMode && (
-            <button
-              onClick={() => update("showBasicStrategy", !settings.showBasicStrategy)}
-              className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide transition-all active:translate-y-[2px] ${
-                settings.showBasicStrategy
-                  ? "border-info bg-info/20 text-info shadow-[0_3px_0_#1a2d4d] hover:bg-info/30 active:shadow-[0_1px_0_#1a2d4d]"
-                  : "border-border bg-panel text-muted shadow-[0_2px_0_#1e2a35] hover:border-muted hover:bg-border/50 hover:text-text active:shadow-none"
-              }`}
-            >
-              Basic Strategy {settings.showBasicStrategy ? "ON" : "OFF"}
-            </button>
+            <>
+              <div>
+                <label className="mb-1 block font-[family-name:var(--font-pixel)] text-[8px] text-muted">
+                  Betting
+                </label>
+                <div className="flex gap-1 rounded-md border border-border bg-panel-elevated p-0.5">
+                  <button
+                    onClick={() => update("manualBettingMode", "strategy")}
+                    disabled={sessionActive}
+                    className={`flex-1 rounded py-1.5 font-[family-name:var(--font-pixel)] text-[8px] transition-all disabled:opacity-30 ${
+                      settings.manualBettingMode === "strategy"
+                        ? "bg-accent/20 text-accent"
+                        : "text-muted hover:bg-border/50 hover:text-text"
+                    }`}
+                  >
+                    Strategy
+                  </button>
+                  <button
+                    onClick={() => update("manualBettingMode", "live")}
+                    disabled={sessionActive}
+                    className={`flex-1 rounded py-1.5 font-[family-name:var(--font-pixel)] text-[8px] transition-all disabled:opacity-30 ${
+                      settings.manualBettingMode === "live"
+                        ? "bg-accent/20 text-accent"
+                        : "text-muted hover:bg-border/50 hover:text-text"
+                    }`}
+                  >
+                    Live (chips)
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => update("showBasicStrategy", !settings.showBasicStrategy)}
+                className={`w-full rounded-md border-2 py-2.5 font-[family-name:var(--font-pixel)] text-[10px] tracking-wide transition-all active:translate-y-[2px] ${
+                  settings.showBasicStrategy
+                    ? "border-info bg-info/20 text-info shadow-[0_3px_0_#1a2d4d] hover:bg-info/30 active:shadow-[0_1px_0_#1a2d4d]"
+                    : "border-border bg-panel text-muted shadow-[0_2px_0_#1e2a35] hover:border-muted hover:bg-border/50 hover:text-text active:shadow-none"
+                }`}
+              >
+                Show Basic Strategy {settings.showBasicStrategy ? "ON" : "OFF"}
+              </button>
+            </>
           )}
 
           {sessionActive && (
@@ -191,7 +227,7 @@ export default function ControlPanel({
                     : "border-border text-muted hover:border-muted hover:bg-border/50"
                 }`}
               >
-                Double (2x)
+                2x
               </button>
             </Tooltip>
             <Tooltip content={settings.allowSurrender ? "Surrender Enabled" : "Surrender Disabled"}>
@@ -257,7 +293,7 @@ export default function ControlPanel({
             />
           </ControlField>
 
-          <ControlField label="Initial Bet">
+          <ControlField label="Initial/Minimum Bet">
             <NumberInput
               value={settings.baseBet}
               onChange={(v) => update("baseBet", v)}

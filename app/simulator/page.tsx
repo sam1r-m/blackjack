@@ -205,6 +205,7 @@ function LiveSessionTab({
   const [isAnimating, setIsAnimating] = useState(false);
   const [manualPendingDisplay, setManualPendingDisplay] =
     useState<ManualRoundPendingDisplay | null>(null);
+  const [manualBet, setManualBet] = useState(settings.baseBet);
 
   const shoeRef = useRef<Shoe | null>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -247,22 +248,31 @@ function LiveSessionTab({
     const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : undefined;
     const strategy = getBettingStrategy(settings.bettingStrategy);
 
-    const betResult = strategy.nextBet({
-      previousOutcome: lastRound?.result,
-      previousBet: lastRound?.bet,
-      bankroll: currentBankroll,
-      baseBet: settings.baseBet,
-      tableMax: settings.tableMax,
-    });
+    const maxBet = Math.min(settings.tableMax, currentBankroll);
+    const useStrategyBet =
+      !settings.manualMode || (settings.manualBettingMode ?? "strategy") === "strategy";
+    const bet = useStrategyBet
+      ? (() => {
+          const betResult = strategy.nextBet({
+            previousOutcome: lastRound?.result,
+            previousBet: lastRound?.bet,
+            bankroll: currentBankroll,
+            baseBet: settings.baseBet,
+            tableMax: settings.tableMax,
+          });
+          if (betResult.shouldStop || betResult.bet === 0) {
+            if (autoplayRef.current) {
+              clearInterval(autoplayRef.current);
+              autoplayRef.current = null;
+              onSettingsChange({ ...settings, autoplay: false });
+            }
+            return 0;
+          }
+          return betResult.bet;
+        })()
+      : Math.max(settings.baseBet, Math.min(manualBet, maxBet));
 
-    if (betResult.shouldStop || betResult.bet === 0) {
-      if (autoplayRef.current) {
-        clearInterval(autoplayRef.current);
-        autoplayRef.current = null;
-        onSettingsChange({ ...settings, autoplay: false });
-      }
-      return;
-    }
+    if (bet === 0) return;
 
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 150);
@@ -280,11 +290,11 @@ function LiveSessionTab({
       const result = startManualRound(
         config,
         shoeRef.current,
-        betResult.bet,
+        bet,
         settings.deckCount
       );
       if (result.status === "outcome") {
-        processOutcome(result.outcome, betResult.bet);
+        processOutcome(result.outcome, bet);
       } else {
         manualPendingRef.current = result.pending;
         setManualPendingDisplay({
@@ -302,12 +312,12 @@ function LiveSessionTab({
 
     const outcome = runRound(config, {
       shoe: shoeRef.current,
-      bet: betResult.bet,
+      bet,
       playerPolicy: basicStrategy,
       deckCount: settings.deckCount,
     });
-    processOutcome(outcome, betResult.bet);
-  }, [rounds, currentBankroll, settings, onSettingsChange, processOutcome]);
+    processOutcome(outcome, bet);
+  }, [rounds, currentBankroll, settings, manualBet, onSettingsChange, processOutcome]);
 
   const applyManualPlayerAction = useCallback(
     (action: PlayerAction) => {
@@ -404,8 +414,20 @@ function LiveSessionTab({
     setCurrentBankroll(settings.bankroll);
     setSessionActive(false);
     setLastOutcome(null);
+    setManualBet(settings.baseBet);
     onSettingsChange({ ...settings, autoplay: false });
   };
+
+  const maxManualBet = Math.min(settings.tableMax, currentBankroll);
+  const handleAddChip = useCallback(
+    (amount: number) => {
+      setManualBet((prev) => Math.min(prev + amount, maxManualBet));
+    },
+    [maxManualBet]
+  );
+  const handleClearBet = useCallback(() => {
+    setManualBet(settings.baseBet);
+  }, [settings.baseBet]);
 
   const handleToggleAutoplay = () => {
     onSettingsChange({ ...settings, autoplay: !settings.autoplay });
@@ -507,7 +529,7 @@ function LiveSessionTab({
         className={`grid grid-cols-1 gap-4 ${wideLayout ? "lg:grid-cols-[minmax(0,0.625fr)_minmax(0,1.5fr)_minmax(0,0.625fr)] lg:min-h-[520px]" : "lg:grid-cols-[minmax(0,0.2915fr)_minmax(0,1fr)]"}`}
       >
         {!isMobile && (
-          <div className={`flex flex-col gap-4 ${wideLayout ? "lg:justify-start" : ""}`}>
+          <div className={`flex flex-col gap-4 ${wideLayout ? "lg:justify-start lg:self-start" : ""}`}>
             {controlsContent}
           </div>
         )}
@@ -526,6 +548,7 @@ function LiveSessionTab({
             onDealHand={dealOneHand}
             canDealHand={!manualPendingDisplay && !isRunning}
             manualMode={settings.manualMode}
+            manualBettingMode={settings.manualBettingMode ?? "strategy"}
             recommendedAction={
               manualPendingDisplay &&
               settings.showBasicStrategy &&
@@ -534,6 +557,11 @@ function LiveSessionTab({
                 : null
             }
             showBasicStrategy={settings.showBasicStrategy}
+            manualBet={manualBet}
+            onAddChip={handleAddChip}
+            onClearBet={handleClearBet}
+            tableMin={settings.baseBet}
+            tableMax={settings.tableMax}
           />
         </div>
         <div className={wideLayout ? "flex min-h-0 flex-1 flex-col" : ""}>
