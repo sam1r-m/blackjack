@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Press_Start_2P, Archivo, Azeret_Mono } from "next/font/google";
+import { Press_Start_2P, Saira, Azeret_Mono } from "next/font/google";
 import "./globals.css";
 
 const pixelify = Press_Start_2P({
@@ -8,9 +8,9 @@ const pixelify = Press_Start_2P({
   variable: "--font-pixel",
 });
 
-// grotesque built for small sizes and dense UI, so it holds up next to the
-// pixel face without competing with it
-const archivo = Archivo({
+// squarish grotesque: flat terminals and a rectangular skeleton echo the pixel
+// face's grid, while staying a real text face at paragraph sizes
+const saira = Saira({
   subsets: ["latin"],
   variable: "--font-body",
 });
@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${pixelify.variable} ${archivo.variable} ${azeretMono.variable} antialiased`}
+        className={`${pixelify.variable} ${saira.variable} ${azeretMono.variable} antialiased`}
       >
         {/*
           THESIS: This page deals you a real hand instead of describing one. It refuses the
