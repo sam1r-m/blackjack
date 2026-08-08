@@ -8,6 +8,7 @@ export const randomPolicy: PlayerPolicy = {
     const actions: PlayerAction[] = ["hit", "stand"];
 
     if (state.playerHand.canDouble) actions.push("double");
+    if (state.playerHand.canSplit) actions.push("split");
     if (state.playerHand.canSurrender) actions.push("surrender");
 
     return actions[Math.floor(Math.random() * actions.length)];

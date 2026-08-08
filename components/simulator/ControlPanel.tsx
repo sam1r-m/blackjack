@@ -23,6 +23,7 @@ export interface SimulatorSettings {
   penetration: number;
   allowSurrender: boolean;
   allowDouble: boolean;
+  allowSplit: boolean;
   manualMode: boolean;
   /** When manual mode: "strategy" = use martingale/flat/etc; "live" = pick chips */
   manualBettingMode: ManualBettingMode;
@@ -42,6 +43,7 @@ export const DEFAULT_SETTINGS: SimulatorSettings = {
   penetration: 0.75,
   allowSurrender: true,
   allowDouble: true,
+  allowSplit: true,
   manualMode: false,
   manualBettingMode: "strategy",
   showBasicStrategy: false,
@@ -228,6 +230,19 @@ export default function ControlPanel({
                 }`}
               >
                 2x
+              </button>
+            </Tooltip>
+            <Tooltip content={settings.allowSplit ? "Splitting Enabled" : "Splitting Disabled"}>
+              <button
+                onClick={() => update("allowSplit", !settings.allowSplit)}
+                disabled={sessionActive}
+                className={`h-full min-h-[26px] rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
+                  settings.allowSplit
+                    ? "border-info/40 text-info hover:border-info hover:bg-info/10"
+                    : "border-border text-muted hover:border-muted hover:bg-border/50"
+                }`}
+              >
+                Split
               </button>
             </Tooltip>
             <Tooltip content={settings.allowSurrender ? "Surrender Enabled" : "Surrender Disabled"}>

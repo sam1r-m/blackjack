@@ -46,9 +46,12 @@ export default function HandHistoryTable({ rounds, fillHeight, compact }: HandHi
               {displayRounds.map((row) => (
                 <tr key={row.roundNumber} className="border-b border-border/30">
                   <td className="py-1.5 pr-3 text-muted">{row.roundNumber}</td>
-                  <td className="py-1.5 pr-3">{row.bet}</td>
+                  <td className="py-1.5 pr-3">
+                    {row.totalWagered && row.totalWagered !== row.bet ? row.totalWagered : row.bet}
+                  </td>
                   <td className={`py-1.5 pr-3 ${resultColors[row.result] ?? "text-text"}`}>
-                    {row.result}{row.doubled ? " (2x)" : ""}
+                    {row.result}
+                    {row.splitCount ? ` (${row.splitCount + 1}x hands)` : row.doubled ? " (2x)" : ""}
                   </td>
                   <td
                     className={`py-1.5 pr-3 ${

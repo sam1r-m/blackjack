@@ -33,17 +33,26 @@ export interface SimulationConfig {
   tableMax: number;
   penetration: number;
   maxHands?: number;
+  // table rules. all default to allowed when omitted
+  allowSurrender?: boolean;
+  allowDouble?: boolean;
+  allowSplit?: boolean;
 }
 
 // per-round record for tracking
 export interface SessionRoundRecord {
   roundNumber: number;
+  /** the bet as placed, which is what betting strategies progress from */
   bet: number;
+  /** total that reached the table, including doubles and split hands */
+  totalWagered?: number;
   result: RoundResultType;
   bankrollBefore: number;
   bankrollAfter: number;
   netWin: number;
   doubled: boolean;
+  /** how many extra hands the round produced by splitting */
+  splitCount?: number;
 }
 
 // session summary after running a full session

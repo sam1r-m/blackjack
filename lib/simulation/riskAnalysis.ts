@@ -19,7 +19,10 @@ function variance(values: number[], avg: number): number {
   return values.reduce((sum, v) => sum + (v - avg) ** 2, 0) / values.length;
 }
 
-export function computeAggregates(samples: MonteCarloSessionSample[]): MonteCarloAggregate {
+export function computeAggregates(
+  samples: MonteCarloSessionSample[],
+  initialBankroll: number
+): MonteCarloAggregate {
   const n = samples.length;
   if (n === 0) {
     // return zeros if somehow empty
@@ -64,12 +67,8 @@ export function computeAggregates(samples: MonteCarloSessionSample[]): MonteCarl
   // ruin = bankroll hit 0
   const ruinCount = samples.filter((s) => s.ruined).length;
 
-  // profit = ended with more than started (we don't have starting bankroll here,
-  // but we can infer from the first sample's context or just check > 0)
-  // actually we just check if ending > 0 since ruined means 0
-  // TODO: pass initialBankroll in for accurate profit calc
-  // for now, profit means endingBankroll > initial. we'll approximate.
-  const profitCount = samples.filter((s) => !s.ruined && s.endingBankroll > 0).length;
+  // profit = walked away with more than was brought to the table
+  const profitCount = samples.filter((s) => s.endingBankroll > initialBankroll).length;
 
   return {
     expectedEndingBankroll: avgBankroll,

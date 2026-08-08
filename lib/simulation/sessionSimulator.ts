@@ -55,6 +55,9 @@ export function runSession(config: SessionSimulatorConfig): SessionSummary {
         rules: {
           dealerRule: config.dealerRule,
           blackjackPayout: config.blackjackPayout,
+          allowSurrender: config.allowSurrender,
+          allowDouble: config.allowDouble,
+          allowSplit: config.allowSplit,
         },
       },
       {
@@ -62,6 +65,8 @@ export function runSession(config: SessionSimulatorConfig): SessionSummary {
         bet: betResult.bet,
         playerPolicy: config.playerPolicy,
         deckCount: config.deckCount,
+        // the player cannot double or split with chips they do not have
+        bankrollAvailable: bankroll,
       }
     );
 
@@ -94,12 +99,17 @@ export function runSession(config: SessionSimulatorConfig): SessionSummary {
 
     rounds.push({
       roundNumber,
+      // the bet as placed. betting strategies progress from this, so it must
+      // stay clear of doubles and split wagers.
       bet: betResult.bet,
+      // everything that actually reached the table this round
+      totalWagered: outcome.bet,
       result: outcome.result,
       bankrollBefore,
       bankrollAfter: bankroll,
       netWin: outcome.netWin,
       doubled: outcome.doubled,
+      splitCount: outcome.splitCount,
     });
 
     // ruined
@@ -118,6 +128,9 @@ export function runSession(config: SessionSimulatorConfig): SessionSummary {
     tableMax: config.tableMax,
     penetration: config.penetration,
     maxHands: config.maxHands,
+    allowSurrender: config.allowSurrender,
+    allowDouble: config.allowDouble,
+    allowSplit: config.allowSplit,
   };
 
   return {

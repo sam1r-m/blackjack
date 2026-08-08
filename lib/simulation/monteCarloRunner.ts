@@ -43,6 +43,6 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloResult {
     });
   }
 
-  const aggregate = computeAggregates(sessions);
+  const aggregate = computeAggregates(sessions, simulationConfig.initialBankroll);
   return { sessions, aggregate };
 }

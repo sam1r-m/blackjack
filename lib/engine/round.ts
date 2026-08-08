@@ -5,247 +5,158 @@ import type {
   PlayerAction,
   Card,
   GameStateView,
-  BlackjackPayout,
 } from "@/types/blackjack";
 import type { Shoe } from "./shoe";
-import { getHandTotals, isBlackjack, isBust } from "./hand";
+import { getHandTotals, isBlackjack } from "./hand";
 import { playDealerHand } from "./dealer";
-import { getCardValue } from "./card";
+import {
+  aggregateRound,
+  anyHandLive,
+  createHand,
+  getLegalActions,
+  resolveNaturals,
+  settleHand,
+  splitHand,
+  type PlayerHandState,
+} from "./settle";
 
 export interface RoundInput {
   shoe: Shoe;
   bet: number;
   playerPolicy: PlayerPolicy;
   deckCount: number;
+  /**
+   * Total chips the player can put at risk this round, initial bet included.
+   * Doubles and splits are refused once they would exceed it. Leave undefined
+   * to let the policy wager freely.
+   */
+  bankrollAvailable?: number;
 }
 
-function getPayoutMultiplier(payout: BlackjackPayout): number {
-  if (payout === "3_to_2") return 1.5;
-  if (payout === "6_to_5") return 1.2;
-  return 1;
+// a policy that keeps asking to split can only be indulged so long
+const MAX_ACTIONS_PER_HAND = 64;
+
+export function buildStateView(
+  hand: PlayerHandState,
+  dealerUpcard: Card,
+  config: RoundConfig,
+  deckCount: number,
+  handIndex: number,
+  handCount: number,
+  legal: ReturnType<typeof getLegalActions>
+): GameStateView {
+  return {
+    playerHand: {
+      cards: [...hand.cards],
+      total: getHandTotals(hand.cards),
+      canSplit: legal.canSplit,
+      canDouble: legal.canDouble,
+      canSurrender: legal.canSurrender,
+      isFirstAction: legal.isFirstAction,
+      fromSplit: hand.fromSplit,
+      handIndex,
+      handCount,
+    },
+    dealerUpcard: { card: dealerUpcard },
+    rules: {
+      dealerRule: config.rules.dealerRule,
+      blackjackPayout: config.rules.blackjackPayout,
+      deckCount,
+    },
+  };
 }
 
 export function runRound(config: RoundConfig, input: RoundInput): RoundOutcome {
-  const { shoe, bet, playerPolicy, deckCount } = input;
+  const { shoe, bet, playerPolicy, deckCount, bankrollAvailable } = input;
   const { rules } = config;
 
-  // initial deal
+  // a real table finishes the round it is in, then reshuffles
+  shoe.shuffleIfNeeded();
+
   const playerCards: Card[] = [shoe.draw(), shoe.draw()];
   const dealerCards: Card[] = [shoe.draw(), shoe.draw()];
 
-  const playerBJ = isBlackjack(playerCards);
-  const dealerBJ = isBlackjack(dealerCards);
-
-  // both have blackjack = push
-  if (playerBJ && dealerBJ) {
-    return {
-      result: "push",
-      bet,
-      netWin: 0,
-      playerTotal: 21,
-      dealerTotal: 21,
-      playerBlackjack: true,
-      dealerBlackjack: true,
-      playerCards,
-      dealerCards,
-      isBust: false,
-      doubled: false,
-    };
-  }
-
-  // player blackjack
-  if (playerBJ) {
-    const multiplier = getPayoutMultiplier(rules.blackjackPayout);
-    return {
-      result: "blackjack",
-      bet,
-      netWin: bet * multiplier,
-      playerTotal: 21,
-      dealerTotal: getHandTotals(dealerCards).bestTotal,
-      playerBlackjack: true,
-      dealerBlackjack: false,
-      playerCards,
-      dealerCards,
-      isBust: false,
-      doubled: false,
-    };
-  }
-
-  // dealer blackjack
-  if (dealerBJ) {
-    return {
-      result: "loss",
-      bet,
-      netWin: -bet,
-      playerTotal: getHandTotals(playerCards).bestTotal,
-      dealerTotal: 21,
-      playerBlackjack: false,
-      dealerBlackjack: true,
-      playerCards,
-      dealerCards,
-      isBust: false,
-      doubled: false,
-    };
-  }
-
-  // player actions
-  let currentBet = bet;
-  let isFirstAction = true;
-  let surrendered = false;
-  let doubled = false;
-
-  while (true) {
-    const playerTotals = getHandTotals(playerCards);
-    if (playerTotals.bestTotal >= 21) break;
-
-    const canDouble = isFirstAction && playerCards.length === 2 && (rules.allowDouble !== false);
-    const canSplit = false; // splits not yet implemented
-    const canSurrender = isFirstAction && (rules.allowSurrender !== false);
-
-    const state: GameStateView = {
-      playerHand: {
-        cards: [...playerCards],
-        total: playerTotals,
-        canSplit,
-        canDouble,
-        canSurrender,
-        isFirstAction,
-      },
-      dealerUpcard: { card: dealerCards[0] },
-      rules: {
-        dealerRule: rules.dealerRule,
-        blackjackPayout: rules.blackjackPayout,
-        deckCount,
-      },
-    };
-
-    const action: PlayerAction = playerPolicy.decideAction(state);
-    isFirstAction = false;
-
-    if (action === "stand") break;
-
-    if (action === "surrender" && canSurrender) {
-      surrendered = true;
-      break;
-    }
-
-    if (action === "double" && canDouble) {
-      currentBet *= 2;
-      doubled = true;
-      playerCards.push(shoe.draw());
-      break;
-    }
-
-    if (action === "hit") {
-      playerCards.push(shoe.draw());
-      continue;
-    }
-
-    // fallback: stand if action doesn't match
-    break;
-  }
-
-  // handle surrender
-  if (surrendered) {
-    return {
-      result: "surrender",
-      bet: currentBet,
-      netWin: -(currentBet / 2),
-      playerTotal: getHandTotals(playerCards).bestTotal,
-      dealerTotal: getHandTotals(dealerCards).bestTotal,
-      playerBlackjack: false,
-      dealerBlackjack: false,
-      playerCards,
-      dealerCards,
-      isBust: false,
-      doubled: false,
-    };
-  }
-
-  const playerFinal = getHandTotals(playerCards);
-
-  // player busts
-  if (playerFinal.bestTotal > 21) {
-    return {
-      result: "loss",
-      bet: currentBet,
-      netWin: -currentBet,
-      playerTotal: playerFinal.bestTotal,
-      dealerTotal: getHandTotals(dealerCards).bestTotal,
-      playerBlackjack: false,
-      dealerBlackjack: false,
-      playerCards,
-      dealerCards,
-      isBust: true,
-      doubled,
-    };
-  }
-
-  // dealer plays
-  const finalDealerCards = playDealerHand(dealerCards, shoe, rules.dealerRule);
-  const dealerFinal = getHandTotals(finalDealerCards);
-
-  // dealer busts
-  if (dealerFinal.bestTotal > 21) {
-    return {
-      result: "win",
-      bet: currentBet,
-      netWin: currentBet,
-      playerTotal: playerFinal.bestTotal,
-      dealerTotal: dealerFinal.bestTotal,
-      playerBlackjack: false,
-      dealerBlackjack: false,
-      playerCards,
-      dealerCards: finalDealerCards,
-      isBust: false,
-      doubled,
-    };
-  }
-
-  // compare totals
-  if (playerFinal.bestTotal > dealerFinal.bestTotal) {
-    return {
-      result: "win",
-      bet: currentBet,
-      netWin: currentBet,
-      playerTotal: playerFinal.bestTotal,
-      dealerTotal: dealerFinal.bestTotal,
-      playerBlackjack: false,
-      dealerBlackjack: false,
-      playerCards,
-      dealerCards: finalDealerCards,
-      isBust: false,
-      doubled,
-    };
-  }
-
-  if (playerFinal.bestTotal < dealerFinal.bestTotal) {
-    return {
-      result: "loss",
-      bet: currentBet,
-      netWin: -currentBet,
-      playerTotal: playerFinal.bestTotal,
-      dealerTotal: dealerFinal.bestTotal,
-      playerBlackjack: false,
-      dealerBlackjack: false,
-      playerCards,
-      dealerCards: finalDealerCards,
-      isBust: false,
-      doubled,
-    };
-  }
-
-  return {
-    result: "push",
-    bet: currentBet,
-    netWin: 0,
-    playerTotal: playerFinal.bestTotal,
-    dealerTotal: dealerFinal.bestTotal,
-    playerBlackjack: false,
-    dealerBlackjack: false,
+  const natural = resolveNaturals(
+    config,
     playerCards,
+    dealerCards,
+    bet,
+    isBlackjack(playerCards),
+    isBlackjack(dealerCards)
+  );
+  if (natural) return natural;
+
+  let hands: PlayerHandState[] = [createHand(playerCards, bet)];
+  let wagered = bet;
+  let index = 0;
+
+  while (index < hands.length) {
+    const hand = hands[index];
+    let actionsTaken = 0;
+
+    while (!hand.done && actionsTaken++ < MAX_ACTIONS_PER_HAND) {
+      if (getHandTotals(hand.cards).bestTotal >= 21) {
+        hand.done = true;
+        break;
+      }
+
+      const budget =
+        bankrollAvailable === undefined ? Number.POSITIVE_INFINITY : bankrollAvailable - wagered;
+      const legal = getLegalActions(hand, config, hands.length, budget);
+      const state = buildStateView(
+        hand,
+        dealerCards[0],
+        config,
+        deckCount,
+        index,
+        hands.length,
+        legal
+      );
+
+      const action: PlayerAction = playerPolicy.decideAction(state);
+      hand.actions++;
+
+      if (action === "split" && legal.canSplit) {
+        wagered += hand.bet;
+        hands = splitHand(hands, index, () => shoe.draw());
+        continue;
+      }
+
+      if (action === "surrender" && legal.canSurrender) {
+        hand.surrendered = true;
+        hand.done = true;
+        break;
+      }
+
+      if (action === "double" && legal.canDouble) {
+        wagered += hand.bet;
+        hand.bet *= 2;
+        hand.doubled = true;
+        hand.cards.push(shoe.draw());
+        hand.done = true;
+        break;
+      }
+
+      if (action === "hit") {
+        hand.cards.push(shoe.draw());
+        continue;
+      }
+
+      // stand, or an action the rules do not allow right now
+      hand.done = true;
+      break;
+    }
+
+    hand.done = true;
+    index++;
+  }
+
+  const finalDealerCards = anyHandLive(hands)
+    ? playDealerHand(dealerCards, shoe, rules.dealerRule)
+    : dealerCards;
+
+  return aggregateRound({
+    hands: hands.map((h) => settleHand(h, finalDealerCards)),
     dealerCards: finalDealerCards,
-    isBust: false,
-    doubled,
-  };
+  });
 }

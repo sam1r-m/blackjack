@@ -31,6 +31,22 @@ export interface HandTotal {
 
 export type RoundResultType = "win" | "loss" | "push" | "blackjack" | "surrender";
 
+// result of a single player hand. a round produces more than one of these
+// once splits are involved.
+export interface HandOutcome {
+  result: RoundResultType;
+  bet: number;
+  netWin: number;
+  playerTotal: number;
+  playerCards: Card[];
+  isBust: boolean;
+  doubled: boolean;
+  fromSplit: boolean;
+}
+
+// aggregate of every hand played in one round. the top-level fields describe
+// the round as a whole (bet = total wagered, netWin = sum across hands) and
+// playerCards/playerTotal mirror the first hand for single-hand rounds.
 export interface RoundOutcome {
   result: RoundResultType;
   bet: number;
@@ -43,6 +59,8 @@ export interface RoundOutcome {
   dealerCards: Card[];
   isBust: boolean;
   doubled: boolean;
+  hands: HandOutcome[];
+  splitCount: number;
 }
 
 // rule config
@@ -60,6 +78,11 @@ export interface PlayerHandView {
   canDouble: boolean;
   canSurrender: boolean;
   isFirstAction: boolean;
+  /** true once this hand came out of a split */
+  fromSplit: boolean;
+  /** position of this hand among the round's hands, and how many there are */
+  handIndex: number;
+  handCount: number;
 }
 
 export interface DealerUpcardView {
@@ -90,5 +113,10 @@ export interface RoundConfig {
     blackjackPayout: BlackjackPayout;
     allowSurrender?: boolean;
     allowDouble?: boolean;
+    allowSplit?: boolean;
+    /** total hands a single round may reach via splitting. defaults to 4 */
+    maxSplitHands?: number;
+    /** most tables forbid resplitting aces. defaults to false */
+    resplitAces?: boolean;
   };
 }

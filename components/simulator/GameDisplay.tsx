@@ -2,7 +2,7 @@
 
 import type { Card, RoundOutcome, PlayerAction } from "@/types/blackjack";
 import type { ManualRoundPendingDisplay } from "@/lib/engine/manualRound";
-import { getHandTotals } from "@/lib/engine/hand";
+import { cardToSprite, CARD_BACK_SPRITE } from "@/lib/cardSprite";
 
 const CHIP_DENOMS = [
   { value: 5, src: "/5chip.png", label: "$5" },
@@ -34,44 +34,84 @@ interface GameDisplayProps {
   tableMax?: number;
 }
 
-function cardToSprite(card: Card): string {
-  const rankMap: Record<string, string> = {
-    A: "ace",
-    "2": "2",
-    "3": "3",
-    "4": "4",
-    "5": "5",
-    "6": "6",
-    "7": "7",
-    "8": "8",
-    "9": "9",
-    "10": "10",
-    J: "jack",
-    Q: "queen",
-    K: "king",
-  };
-  const suitMap: Record<string, string> = {
-    hearts: "Hearts",
-    diamonds: "Diamonds",
-    clubs: "Clubs",
-    spades: "Spades",
-  };
-  const rank = rankMap[card.rank] ?? card.rank;
-  const suit = suitMap[card.suit] ?? card.suit;
-  return `/Deck of Cards/${rank}${suit}.png`;
-}
-
-function CardView({ card }: { card: Card }) {
+function CardView({ card, scale = 1 }: { card: Card; scale?: number }) {
   const src = cardToSprite(card);
+  const width = Math.round(81 * scale);
+  const height = Math.round(113 * scale);
   return (
     <img
       src={src}
       alt={`${card.rank} of ${card.suit}`}
-      width={81}
-      height={113}
-      className="h-[113px] w-[81px] object-contain transition-transform"
-      style={{ imageRendering: "pixelated" }}
+      width={width}
+      height={height}
+      className="object-contain transition-transform"
+      style={{ width, height, imageRendering: "pixelated" }}
     />
+  );
+}
+
+function CardBack({ scale = 1 }: { scale?: number }) {
+  const width = Math.round(81 * scale);
+  const height = Math.round(113 * scale);
+  return (
+    <img
+      src={CARD_BACK_SPRITE}
+      alt="hole"
+      width={width}
+      height={height}
+      className="object-contain"
+      style={{ width, height, imageRendering: "pixelated" }}
+    />
+  );
+}
+
+// cards shrink as splits add hands so four of them still fit the felt
+function scaleForHands(handCount: number): number {
+  if (handCount >= 4) return 0.56;
+  if (handCount === 3) return 0.68;
+  if (handCount === 2) return 0.82;
+  return 1;
+}
+
+interface HandStackProps {
+  cards: Card[];
+  total: number;
+  bet?: number;
+  scale: number;
+  active?: boolean;
+  /** only shown when the round produced more than one hand */
+  badge?: string;
+  status?: string;
+  statusColor?: string;
+}
+
+function HandStack({ cards, total, bet, scale, active, badge, status, statusColor }: HandStackProps) {
+  return (
+    <div
+      className={`flex flex-col items-center gap-1 rounded-lg p-1.5 transition-all ${
+        active ? "bg-black/30 ring-2 ring-highlight" : ""
+      }`}
+    >
+      {badge && (
+        <span className="font-[family-name:var(--font-pixel)] text-[7px] text-white/80 drop-shadow">
+          {badge}
+        </span>
+      )}
+      <div className="flex" style={{ gap: Math.round(6 * scale) }}>
+        {cards.map((card, i) => (
+          <CardView key={`${card.rank}${card.suit}-${i}`} card={card} scale={scale} />
+        ))}
+      </div>
+      <span className="rounded-md bg-black/50 px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[10px] font-bold text-white drop-shadow-md">
+        {total}
+        {bet !== undefined && <span className="ml-1 text-highlight">${bet}</span>}
+      </span>
+      {status && (
+        <span className={`font-[family-name:var(--font-pixel)] text-[8px] ${statusColor ?? "text-white"}`}>
+          {status}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -103,7 +143,7 @@ const actionHotkeys: Record<PlayerAction, string> = {
   hit: "H",
   stand: "S",
   double: "D",
-  split: "S",
+  split: "P",
   surrender: "W",
 };
 
@@ -111,7 +151,7 @@ const actionCalloutStyles: Record<PlayerAction, { border: string; text: string }
   hit: { border: "border-accent", text: "text-accent" },
   stand: { border: "border-highlight", text: "text-highlight" },
   double: { border: "border-info", text: "text-info" },
-  split: { border: "border-info", text: "text-info" },
+  split: { border: "border-[#ff9d4d]", text: "text-[#ff9d4d]" },
   surrender: { border: "border-[#9b6dff]", text: "text-[#9b6dff]" },
 };
 
@@ -137,11 +177,40 @@ export default function GameDisplay({
   const displayOutcome = lastOutcome;
   const displayPending = manualPending;
 
-  const actionBtn = (action: PlayerAction, onClick: () => void, variant: "accent" | "highlight" | "info" | "surrender") => {
+  const pendingScale = scaleForHands(displayPending?.hands.length ?? 1);
+  const multiPending = (displayPending?.hands.length ?? 1) > 1;
+
+  // older outcomes predate the hands array, so fall back to the flat fields
+  const outcomeHands =
+    displayOutcome?.hands && displayOutcome.hands.length > 0
+      ? displayOutcome.hands
+      : displayOutcome
+        ? [
+            {
+              result: displayOutcome.result,
+              bet: displayOutcome.bet,
+              netWin: displayOutcome.netWin,
+              playerTotal: displayOutcome.playerTotal,
+              playerCards: displayOutcome.playerCards,
+              isBust: displayOutcome.isBust,
+              doubled: displayOutcome.doubled,
+              fromSplit: false,
+            },
+          ]
+        : [];
+  const outcomeScale = scaleForHands(outcomeHands.length);
+  const multiOutcome = outcomeHands.length > 1;
+
+  const actionBtn = (
+    action: PlayerAction,
+    onClick: () => void,
+    variant: "accent" | "highlight" | "info" | "split" | "surrender"
+  ) => {
     const styles = {
       accent: "border-accent bg-accent text-bg shadow-[0_4px_0_#1a3d32] hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_#1a3d32]",
       highlight: "border-highlight bg-highlight text-bg shadow-[0_4px_0_#5c4a0a] hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_#5c4a0a]",
       info: "border-info bg-info text-bg shadow-[0_4px_0_#1a2d4d] hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_#1a2d4d]",
+      split: "border-[#ff9d4d] bg-[#ff9d4d] text-bg shadow-[0_4px_0_#7a4517] hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_#7a4517]",
       surrender: "border-[#9b6dff] bg-[#9b6dff] text-bg shadow-[0_4px_0_#3d2a5c] hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_#3d2a5c]",
     };
     const label = actionLabels[action];
@@ -192,27 +261,30 @@ export default function GameDisplay({
               <div className="flex flex-col items-center gap-1.5">
                 <span className="rounded-md bg-black/50 px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[11px] font-bold text-white drop-shadow-md">Dealer</span>
                 <div className="flex gap-1.5">
-                  <CardView card={displayPending.dealerCards[0]} />
-                  <img
-                    src="/Deck of Cards/blueBackofCards.png"
-                    alt="hole"
-                    width={81}
-                    height={113}
-                    className="h-[113px] w-[81px] object-contain"
-                    style={{ imageRendering: "pixelated" }}
+                  <CardView card={displayPending.dealerCards[0]} scale={pendingScale} />
+                  <CardBack scale={pendingScale} />
+                </div>
+              </div>
+              <div className="flex items-start justify-center gap-2">
+                {displayPending.hands.map((hand, i) => (
+                  <HandStack
+                    key={i}
+                    cards={hand.cards}
+                    total={hand.total}
+                    bet={multiPending ? hand.bet : undefined}
+                    scale={pendingScale}
+                    active={multiPending && i === displayPending.activeIndex}
+                    badge={multiPending ? `Hand ${i + 1}` : undefined}
+                    status={hand.isBust ? "BUST" : undefined}
+                    statusColor="text-loss"
                   />
-                </div>
+                ))}
               </div>
-              <div className="flex flex-col items-center gap-1.5">
-                <div className="flex gap-1.5">
-                  {displayPending.playerCards.map((card, i) => (
-                    <CardView key={`p-${i}`} card={card} />
-                  ))}
-                </div>
-                <span className="rounded-md bg-black/50 px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[11px] font-bold text-white drop-shadow-md">
-                  Player · {getHandTotals(displayPending.playerCards).bestTotal}
+              {!multiPending && (
+                <span className="font-[family-name:var(--font-pixel)] text-[9px] text-white/70 drop-shadow">
+                  Player
                 </span>
-              </div>
+              )}
             </>
           ) : (
             <>
@@ -222,7 +294,7 @@ export default function GameDisplay({
                 </span>
                 <div className="flex gap-1.5">
                   {displayOutcome!.dealerCards.map((card, i) => (
-                    <CardView key={`d-${i}`} card={card} />
+                    <CardView key={`d-${i}`} card={card} scale={outcomeScale} />
                   ))}
                 </div>
               </div>
@@ -238,15 +310,25 @@ export default function GameDisplay({
                   </span>
                 )}
               </div>
-              <div className="flex flex-col items-center gap-1.5">
-                <div className="flex gap-1.5">
-                  {displayOutcome!.playerCards.map((card, i) => (
-                    <CardView key={`p-${i}`} card={card} />
-                  ))}
-                </div>
-                <span className="rounded-md bg-black/50 px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[11px] font-bold text-white drop-shadow-md">
-                  Player · {displayOutcome!.playerTotal}
-                </span>
+              <div className="flex items-start justify-center gap-2">
+                {outcomeHands.map((hand, i) => (
+                  <HandStack
+                    key={i}
+                    cards={hand.playerCards}
+                    total={hand.playerTotal}
+                    bet={multiOutcome ? hand.bet : undefined}
+                    scale={outcomeScale}
+                    badge={multiOutcome ? `Hand ${i + 1}` : undefined}
+                    status={
+                      multiOutcome
+                        ? `${resultLabel[hand.result]?.text ?? hand.result}${
+                            hand.netWin !== 0 ? ` ${hand.netWin > 0 ? "+" : ""}${hand.netWin}` : ""
+                          }`
+                        : undefined
+                    }
+                    statusColor={resultLabel[hand.result]?.color}
+                  />
+                ))}
               </div>
             </>
           )}
@@ -268,14 +350,14 @@ export default function GameDisplay({
             )}
             {displayPending && onManualAction && (
               <>
-                {actionBtn("hit", () => onManualAction("hit"), "accent")}
-                {actionBtn("stand", () => onManualAction("stand"), "highlight")}
-                {displayPending.isFirstAction &&
-                  displayPending.playerCards.length === 2 &&
-                  displayPending.config.rules.allowDouble !== false &&
+                {displayPending.canHit && actionBtn("hit", () => onManualAction("hit"), "accent")}
+                {displayPending.canStand &&
+                  actionBtn("stand", () => onManualAction("stand"), "highlight")}
+                {displayPending.canDouble &&
                   actionBtn("double", () => onManualAction("double"), "info")}
-                {displayPending.isFirstAction &&
-                  displayPending.config.rules.allowSurrender !== false &&
+                {displayPending.canSplit &&
+                  actionBtn("split", () => onManualAction("split"), "split")}
+                {displayPending.canSurrender &&
                   actionBtn("surrender", () => onManualAction("surrender"), "surrender")}
               </>
             )}
@@ -364,7 +446,7 @@ export default function GameDisplay({
             <span>
               <span className="font-bold text-bg">Bet:</span>{" "}
               <span className="text-text">
-                ${displayPending?.currentBet ?? displayOutcome?.bet ?? 0}
+                ${displayPending?.totalWagered ?? displayOutcome?.bet ?? 0}
               </span>
             </span>
             <span className="flex items-center gap-1.5">

@@ -24,13 +24,16 @@ import {
   startManualRound,
   applyManualAction,
   getRecommendedAction,
+  toPendingDisplay,
   type ManualRoundPending,
   type ManualRoundPendingDisplay,
 } from "@/lib/engine/manualRound";
 import { basicStrategy } from "@/lib/strategies/basicStrategy";
 import { flatBetStrategy } from "@/lib/betting/flatBet";
 import { martingaleStrategy } from "@/lib/betting/martingale";
+import { reverseMartingaleStrategy } from "@/lib/betting/reverseMartingale";
 import { runMonteCarlo } from "@/lib/simulation/monteCarloRunner";
+import { formatHouseEdge } from "@/lib/simulation/houseEdge";
 
 import type { RoundOutcome, PlayerAction } from "@/types/blackjack";
 import type {
@@ -52,6 +55,8 @@ function getBettingStrategy(type: string): BettingStrategy {
   switch (type) {
     case "martingale":
       return martingaleStrategy;
+    case "reverse_martingale":
+      return reverseMartingaleStrategy;
     case "flat":
     default:
       return flatBetStrategy;
@@ -205,24 +210,38 @@ function LiveSessionTab({
   const [isAnimating, setIsAnimating] = useState(false);
   const [manualPendingDisplay, setManualPendingDisplay] =
     useState<ManualRoundPendingDisplay | null>(null);
+  const [recommendedAction, setRecommendedAction] = useState<PlayerAction | null>(null);
   const [manualBet, setManualBet] = useState(settings.baseBet);
 
   const shoeRef = useRef<Shoe | null>(null);
   const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const manualPendingRef = useRef<ManualRoundPending | null>(null);
+  // the bet as placed this round, kept so betting strategies progress from it
+  // rather than from a doubled or split total
+  const placedBetRef = useRef(0);
+
+  // keep the live pending hand, its rendered view, and the strategy hint in
+  // step, so nothing has to read the ref while rendering
+  const syncPending = useCallback((pending: ManualRoundPending | null) => {
+    manualPendingRef.current = pending;
+    setManualPendingDisplay(pending ? toPendingDisplay(pending) : null);
+    setRecommendedAction(pending ? getRecommendedAction(pending) : null);
+  }, []);
 
   const processOutcome = useCallback(
-    (outcome: RoundOutcome, bet: number) => {
+    (outcome: RoundOutcome, placedBet: number) => {
       const newBankroll = currentBankroll + outcome.netWin;
       const roundNumber = rounds.length + 1;
       const record: SessionRoundRecord = {
         roundNumber,
-        bet,
+        bet: placedBet,
+        totalWagered: outcome.bet,
         result: outcome.result,
         bankrollBefore: currentBankroll,
         bankrollAfter: newBankroll,
         netWin: outcome.netWin,
         doubled: outcome.doubled,
+        splitCount: outcome.splitCount,
       };
       setLastOutcome(outcome);
       setRounds((prev) => [...prev, record]);
@@ -272,7 +291,10 @@ function LiveSessionTab({
         })()
       : Math.max(settings.baseBet, Math.min(manualBet, maxBet));
 
-    if (bet === 0) return;
+    // never place a bet the bankroll cannot cover
+    if (bet === 0 || bet > currentBankroll) return;
+
+    placedBetRef.current = bet;
 
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 150);
@@ -283,6 +305,7 @@ function LiveSessionTab({
         blackjackPayout: settings.blackjackPayout,
         allowSurrender: settings.allowSurrender,
         allowDouble: settings.allowDouble,
+        allowSplit: settings.allowSplit,
       },
     };
 
@@ -291,20 +314,13 @@ function LiveSessionTab({
         config,
         shoeRef.current,
         bet,
-        settings.deckCount
+        settings.deckCount,
+        currentBankroll
       );
       if (result.status === "outcome") {
         processOutcome(result.outcome, bet);
       } else {
-        manualPendingRef.current = result.pending;
-        setManualPendingDisplay({
-          playerCards: result.pending.playerCards,
-          dealerCards: result.pending.dealerCards,
-          currentBet: result.pending.currentBet,
-          isFirstAction: result.pending.isFirstAction,
-          config: result.pending.config,
-          deckCount: result.pending.deckCount,
-        });
+        syncPending(result.pending);
         setLastOutcome(null);
       }
       return;
@@ -315,6 +331,7 @@ function LiveSessionTab({
       bet,
       playerPolicy: basicStrategy,
       deckCount: settings.deckCount,
+      bankrollAvailable: currentBankroll,
     });
     processOutcome(outcome, bet);
   }, [rounds, currentBankroll, settings, manualBet, onSettingsChange, processOutcome]);
@@ -327,22 +344,13 @@ function LiveSessionTab({
       const result = applyManualAction(pending, action);
 
       if (result.status === "outcome") {
-        manualPendingRef.current = null;
-        setManualPendingDisplay(null);
-        processOutcome(result.outcome, result.outcome.bet);
+        syncPending(null);
+        processOutcome(result.outcome, placedBetRef.current);
       } else {
-        manualPendingRef.current = result.pending;
-        setManualPendingDisplay({
-          playerCards: result.pending.playerCards,
-          dealerCards: result.pending.dealerCards,
-          currentBet: result.pending.currentBet,
-          isFirstAction: result.pending.isFirstAction,
-          config: result.pending.config,
-          deckCount: result.pending.deckCount,
-        });
+        syncPending(result.pending);
       }
     },
-    [processOutcome]
+    [processOutcome, syncPending]
   );
 
   useEffect(() => {
@@ -378,15 +386,20 @@ function LiveSessionTab({
           h: "hit",
           s: "stand",
           d: "double",
+          p: "split",
           w: "surrender",
         };
-        const key = e.key.toLowerCase();
-        const action = actionMap[key];
+        const action = actionMap[e.key.toLowerCase()];
         if (action) {
-          const pending = manualPendingRef.current;
-          if (!pending) return;
-          if (key === "d" && (!pending.isFirstAction || pending.playerCards.length !== 2 || pending.config.rules.allowDouble === false)) return;
-          if (key === "w" && (!pending.isFirstAction || pending.config.rules.allowSurrender === false)) return;
+          // the engine already resolved what is legal for the active hand
+          const allowed: Record<PlayerAction, boolean> = {
+            hit: manualPendingDisplay.canHit,
+            stand: manualPendingDisplay.canStand,
+            double: manualPendingDisplay.canDouble,
+            split: manualPendingDisplay.canSplit,
+            surrender: manualPendingDisplay.canSurrender,
+          };
+          if (!allowed[action]) return;
           e.preventDefault();
           applyManualPlayerAction(action);
           return;
@@ -408,8 +421,7 @@ function LiveSessionTab({
       autoplayRef.current = null;
     }
     shoeRef.current = null;
-    manualPendingRef.current = null;
-    setManualPendingDisplay(null);
+    syncPending(null);
     setRounds([]);
     setCurrentBankroll(settings.bankroll);
     setSessionActive(false);
@@ -450,6 +462,10 @@ function LiveSessionTab({
           </span>
         </div>
         <div className="flex justify-between">
+          <span className="text-muted">Splits:</span>
+          <span>{rounds.reduce((sum, r) => sum + (r.splitCount ?? 0), 0)}</span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-muted">Games:</span>
           <span>{rounds.length}</span>
         </div>
@@ -477,8 +493,19 @@ function LiveSessionTab({
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted">House Edge:</span>
-            <span className="text-loss">0.50%</span>
+            <span className="text-muted" title="Basic-strategy house edge for the current table rules">
+              House Edge:
+            </span>
+            <span className="text-loss">
+              {formatHouseEdge({
+                deckCount: settings.deckCount,
+                dealerRule: settings.dealerRule,
+                blackjackPayout: settings.blackjackPayout,
+                allowSurrender: settings.allowSurrender,
+                allowDouble: settings.allowDouble,
+                allowSplit: settings.allowSplit,
+              })}
+            </span>
           </div>
         </div>
       </div>
@@ -549,13 +576,7 @@ function LiveSessionTab({
             canDealHand={!manualPendingDisplay && !isRunning}
             manualMode={settings.manualMode}
             manualBettingMode={settings.manualBettingMode ?? "strategy"}
-            recommendedAction={
-              manualPendingDisplay &&
-              settings.showBasicStrategy &&
-              manualPendingRef.current
-                ? getRecommendedAction(manualPendingRef.current)
-                : null
-            }
+            recommendedAction={settings.showBasicStrategy ? recommendedAction : null}
             showBasicStrategy={settings.showBasicStrategy}
             manualBet={manualBet}
             onAddChip={handleAddChip}

@@ -1,4 +1,4 @@
-import type { GameStateView, PlayerAction, PlayerPolicy } from "@/types/blackjack";
+import type { GameStateView, HandTotal, PlayerAction, PlayerPolicy } from "@/types/blackjack";
 import { getCardValue } from "@/lib/engine/card";
 
 // basic strategy lookup for hard totals
@@ -62,23 +62,37 @@ function lookupAction(table: Record<number, string[]>, total: number, colIdx: nu
   return row[colIdx] ?? null;
 }
 
+// the tables above are the stand-on-soft-17 chart. when the dealer hits soft 17
+// late surrender picks up two more spots against an ace.
+function isH17SurrenderSpot(total: HandTotal, dealerValue: number): boolean {
+  if (total.isSoft || dealerValue !== 11) return false;
+  return total.bestTotal === 15 || total.bestTotal === 17;
+}
+
 export const basicStrategy: PlayerPolicy = {
   name: "basic_strategy",
 
   decideAction(state: GameStateView): PlayerAction {
-    const { playerHand, dealerUpcard } = state;
+    const { playerHand, dealerUpcard, rules } = state;
     const { total, canDouble, canSplit, canSurrender } = playerHand;
     const dealerVal = getCardValue(dealerUpcard.card);
     const col = dealerUpcardIndex(dealerVal);
 
-    // check for pairs first
+    // pairs first - the engine only sets canSplit when the two cards match
+    // in value and the rules still permit another hand
     if (canSplit && playerHand.cards.length === 2) {
       const cardVal = getCardValue(playerHand.cards[0]);
       const pairAction = lookupAction(PAIRS, cardVal, col);
       if (pairAction === "y") return "split";
     }
 
-    // soft totals
+    if (canSurrender && rules.dealerRule === "hit_soft_17" && isH17SurrenderSpot(total, dealerVal)) {
+      return "surrender";
+    }
+
+    // soft totals. soft 12 (a pair of aces that cannot be split again) and
+    // soft 21 fall through to the hard table, which lands on the right call
+    // for both.
     if (total.isSoft && total.bestTotal >= 13 && total.bestTotal <= 20) {
       const action = lookupAction(SOFT, total.bestTotal, col);
       if (action === "d") return canDouble ? "double" : "hit";
