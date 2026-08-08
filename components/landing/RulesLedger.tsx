@@ -13,7 +13,7 @@ const VARIANTS: { label: string; rules: HouseEdgeRules }[] = [
   { label: "6 decks · 3:2 · H17", rules: BASE },
   { label: "Blackjack pays 6:5", rules: { ...BASE, blackjackPayout: "6_to_5" } },
   { label: "Dealer stands soft 17", rules: { ...BASE, dealerRule: "stand_soft_17" } },
-  { label: "Single deck · 3:2", rules: { ...BASE, deckCount: 1 } },
+  { label: "Double deck · 3:2", rules: { ...BASE, deckCount: 2 } },
   { label: "No doubling", rules: { ...BASE, allowDouble: false } },
 ];
 

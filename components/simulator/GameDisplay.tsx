@@ -123,14 +123,6 @@ const resultLabel: Record<string, { text: string; color: string }> = {
   surrender: { text: "SURRENDER", color: "text-[#9b6dff]" },
 };
 
-const plColors: Record<string, string> = {
-  win: "text-accent",
-  blackjack: "text-highlight",
-  loss: "text-loss",
-  push: "text-info",
-  surrender: "text-[#9b6dff]",
-};
-
 const actionLabels: Record<PlayerAction, string> = {
   hit: "Hit",
   stand: "Stand",
@@ -298,18 +290,25 @@ export default function GameDisplay({
                   ))}
                 </div>
               </div>
-              <div
-                className={`font-[family-name:var(--font-pixel)] text-xs ${resultLabel[displayOutcome!.result]?.color ?? "text-text"}`}
+              {/* the dealer's call, keyed so it kicks each time a hand settles */}
+              <span
+                key={handNumber}
+                className={`inline-flex items-center gap-2 rounded-md bg-black/60 px-3 py-1.5 ${
+                  resultLabel[displayOutcome!.result]?.color ?? "text-text"
+                }`}
+                style={{ animation: "var(--animate-bankroll-pop)" }}
               >
-                {resultLabel[displayOutcome!.result]?.text ?? displayOutcome!.result}
-                {displayOutcome!.doubled && " (2x)"}
+                <span className="font-[family-name:var(--font-pixel)] text-[10px] leading-none">
+                  {resultLabel[displayOutcome!.result]?.text ?? displayOutcome!.result}
+                  {displayOutcome!.doubled && " 2x"}
+                </span>
                 {displayOutcome!.netWin !== 0 && (
-                  <span className="ml-1 font-[family-name:var(--font-mono)] text-[10px]">
-                    ({displayOutcome!.netWin > 0 ? "+" : ""}
-                    {displayOutcome!.netWin})
+                  <span className="font-[family-name:var(--font-mono)] text-[12px] font-bold leading-none tabular-nums">
+                    {displayOutcome!.netWin > 0 ? "+" : "−"}
+                    {Math.abs(displayOutcome!.netWin)}
                   </span>
                 )}
-              </div>
+              </span>
               <div className="flex items-start justify-center gap-2">
                 {outcomeHands.map((hand, i) => (
                   <HandStack
@@ -449,15 +448,27 @@ export default function GameDisplay({
                 ${displayPending?.totalWagered ?? displayOutcome?.bet ?? 0}
               </span>
             </span>
-            <span className="flex items-center gap-1.5">
-              {lastOutcome && (
-                <span className={plColors[lastOutcome.result] ?? "text-muted"}>
-                  ({lastOutcome.netWin >= 0 ? "+" : ""}{lastOutcome.netWin})
+            <span className="relative">
+              {/* the hand's payout floats off the figure without moving it */}
+              {lastOutcome && lastOutcome.netWin !== 0 && (
+                <span
+                  key={`d-${handNumber}`}
+                  aria-hidden
+                  className={`pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap font-bold tabular-nums ${
+                    lastOutcome.netWin > 0 ? "text-accent" : "text-loss"
+                  }`}
+                  style={{ animation: "var(--animate-delta-float)" }}
+                >
+                  {lastOutcome.netWin > 0 ? "+" : "−"}${Math.abs(lastOutcome.netWin)}
                 </span>
               )}
-              <span>
-                <span className="font-bold text-bg">Cash:</span>{" "}
-                <span className="text-highlight">${currentBankroll.toFixed(0)}</span>
+              <span className="font-bold text-bg">Cash:</span>{" "}
+              <span
+                key={`c-${handNumber}`}
+                className="inline-block text-highlight tabular-nums"
+                style={{ animation: "var(--animate-bankroll-pop)" }}
+              >
+                ${currentBankroll.toFixed(0)}
               </span>
             </span>
           </div>

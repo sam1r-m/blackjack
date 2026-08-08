@@ -189,7 +189,9 @@ export default function LiveTable() {
           "inset 0 0 110px 34px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.4), 0 18px 40px rgba(0,0,0,0.55)",
       }}
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8 sm:px-8 sm:py-10">
+      {/* tighter above so the hand sits higher on the felt, with the breathing
+          room saved up for the gap before the call to action */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-8 sm:px-8 sm:py-10">
         {/* placard and live figures read as the two ends of a real table, and
             stack on narrow screens rather than squeezing each other */}
         <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -341,7 +343,7 @@ export default function LiveTable() {
 
         {/* the live bet sits in the betting circle as a real chip, and the
             primary action sits directly under it */}
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-8">
           <div className="flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full border-2 border-dashed border-white/35">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
