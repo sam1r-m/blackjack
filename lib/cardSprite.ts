@@ -15,6 +15,7 @@ const SUIT_SPRITE: Record<string, string> = {
 };
 
 export const CARD_BACK_SPRITE = "/Deck of Cards/blueBackofCards.png";
+export const CARD_BACK_RED_SPRITE = "/Deck of Cards/redBackofCards.png";
 
 /** path to the pixel sprite for a card, e.g. /Deck of Cards/queenSpades.png */
 export function cardToSprite(card: Card): string {

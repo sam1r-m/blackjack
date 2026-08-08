@@ -218,56 +218,16 @@ export default function ControlPanel({
           <h2 className="font-[family-name:var(--font-pixel)] text-xs text-highlight">
             Settings
           </h2>
-          <div className="flex gap-1.5">
-            <Tooltip content={settings.allowDouble ? "Doubling Enabled" : "Doubling Disabled"}>
-              <button
-                onClick={() => update("allowDouble", !settings.allowDouble)}
-                disabled={sessionActive}
-                className={`h-full min-h-[26px] rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
-                  settings.allowDouble
-                    ? "border-highlight/40 text-highlight hover:border-highlight hover:bg-highlight/10"
-                    : "border-border text-muted hover:border-muted hover:bg-border/50"
-                }`}
-              >
-                2x
-              </button>
-            </Tooltip>
-            <Tooltip content={settings.allowSplit ? "Splitting Enabled" : "Splitting Disabled"}>
-              <button
-                onClick={() => update("allowSplit", !settings.allowSplit)}
-                disabled={sessionActive}
-                className={`h-full min-h-[26px] rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
-                  settings.allowSplit
-                    ? "border-info/40 text-info hover:border-info hover:bg-info/10"
-                    : "border-border text-muted hover:border-muted hover:bg-border/50"
-                }`}
-              >
-                Split
-              </button>
-            </Tooltip>
-            <Tooltip content={settings.allowSurrender ? "Surrender Enabled" : "Surrender Disabled"}>
-              <button
-                onClick={() => update("allowSurrender", !settings.allowSurrender)}
-                disabled={sessionActive}
-                className={`h-full min-h-[26px] rounded-md border px-2 py-0.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
-                  settings.allowSurrender
-                    ? "border-[#9b6dff]/40 text-[#9b6dff] hover:border-[#9b6dff] hover:bg-[#9b6dff]/10"
-                    : "border-border text-muted hover:border-muted hover:bg-border/50"
-                }`}
-              >
-                Surrender
-              </button>
-            </Tooltip>
-            <Tooltip content="Reset">
-              <button
-                onClick={onResetSettings}
-                disabled={sessionActive}
-                className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
-              >
-                <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
-              </button>
-            </Tooltip>
-          </div>
+          <Tooltip content="Reset">
+            <button
+              onClick={onResetSettings}
+              disabled={sessionActive}
+              aria-label="Reset settings to defaults"
+              className="rounded-md border border-border px-1.5 py-0.5 text-lg leading-none text-muted shadow-[0_2px_0_#1e2a35] transition-all hover:border-muted hover:bg-border/50 hover:text-text active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30"
+            >
+              <span className="-translate-y-[2px] translate-x-[0.5px] inline-block">⟳</span>
+            </button>
+          </Tooltip>
         </div>
         <div className="space-y-3">
           <ControlField label="Decks">
@@ -296,6 +256,36 @@ export default function ControlPanel({
               onChange={(v) => update("blackjackPayout", v as BlackjackPayout)}
               disabled={sessionActive}
             />
+          </ControlField>
+
+          <ControlField label="Table Rules">
+            <div className="flex flex-wrap gap-1.5">
+              <RuleToggle
+                label="2x"
+                tone="highlight"
+                active={settings.allowDouble}
+                disabled={sessionActive}
+                tooltip={settings.allowDouble ? "Doubling Enabled" : "Doubling Disabled"}
+                onClick={() => update("allowDouble", !settings.allowDouble)}
+              />
+              <RuleToggle
+                label="Split"
+                tone="info"
+                active={settings.allowSplit}
+                disabled={sessionActive}
+                tooltip={settings.allowSplit ? "Splitting Enabled" : "Splitting Disabled"}
+                onClick={() => update("allowSplit", !settings.allowSplit)}
+              />
+              <RuleToggle
+                label="Surrender"
+                minWidth="5.25rem"
+                tone="violet"
+                active={settings.allowSurrender}
+                disabled={sessionActive}
+                tooltip={settings.allowSurrender ? "Surrender Enabled" : "Surrender Disabled"}
+                onClick={() => update("allowSurrender", !settings.allowSurrender)}
+              />
+            </div>
           </ControlField>
 
           <ControlField label="Bankroll">
@@ -353,6 +343,48 @@ export default function ControlPanel({
 
       <StrategyModal isOpen={showStrategy} onClose={() => setShowStrategy(false)} />
     </>
+  );
+}
+
+const RULE_TONES = {
+  highlight: "border-highlight/40 text-highlight hover:border-highlight hover:bg-highlight/10",
+  info: "border-info/40 text-info hover:border-info hover:bg-info/10",
+  violet: "border-[#9b6dff]/40 text-[#9b6dff] hover:border-[#9b6dff] hover:bg-[#9b6dff]/10",
+} as const;
+
+function RuleToggle({
+  label,
+  tone,
+  active,
+  disabled,
+  tooltip,
+  onClick,
+  minWidth = "4.75rem",
+}: {
+  label: string;
+  tone: keyof typeof RULE_TONES;
+  active: boolean;
+  disabled: boolean;
+  tooltip: string;
+  onClick: () => void;
+  /** floor for this toggle's label, so it wraps to its own row instead of clipping */
+  minWidth?: string;
+}) {
+  return (
+    <div className="flex-1" style={{ minWidth }}>
+      <Tooltip content={tooltip}>
+        <button
+        onClick={onClick}
+        disabled={disabled}
+        aria-pressed={active}
+        className={`min-h-[30px] w-full rounded-md border px-1 py-1.5 font-[family-name:var(--font-pixel)] text-[7px] leading-none shadow-[0_2px_0_#1e2a35] transition-all active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-30 ${
+          active ? RULE_TONES[tone] : "border-border text-muted hover:border-muted hover:bg-border/50"
+        }`}
+      >
+          {label}
+        </button>
+      </Tooltip>
+    </div>
   );
 }
 

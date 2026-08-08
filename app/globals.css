@@ -11,6 +11,13 @@
   --color-info: #4da3ff;
   --color-text: #dce4ec;
   --color-muted: #6b7d8d;
+  /* muted only clears 4.5:1 against the page ground. inside a panel it lands at
+     4.21:1, so body text on panels uses this one instead. */
+  --color-muted-strong: #7d8f9f;
+
+  /* the bankroll figure kicks when it settles, and the delta floats off it */
+  --animate-bankroll-pop: bankroll-pop 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-delta-float: delta-float 1500ms ease-out forwards;
 
   --font-display: var(--font-pixel);
   --font-sans: var(--font-body);
@@ -22,6 +29,44 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans), system-ui, sans-serif;
   min-height: 100vh;
+}
+
+@keyframes bankroll-pop {
+  0% {
+    transform: scale(1);
+  }
+  32% {
+    transform: scale(1.13);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes delta-float {
+  0% {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bankroll-pop,
+  .animate-delta-float {
+    animation: none;
+  }
 }
 
 /* styled inputs */
